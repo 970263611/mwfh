@@ -23,6 +23,7 @@
     "electron-builder": "^26.15.3"
   },
   "dependencies": {
+    "electron-squirrel-startup": "^1.0.1",
     "lowdb": "^7.0.1"
   },
   "build": {
