@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>跨系统文件文字交互工具</title>
+  <title>花之交互工具</title>
   <style>
     * {
       margin: 0;
@@ -527,7 +527,7 @@
         <input type="file" id="fileInput" multiple>
         <div class="upload-tip" id="fileTip">未选择文件</div>
       </div>
-      <button class="btn btn-primary" onclick="sendFile()">📤 提交文件</button>
+      <button class="btn btn-primary" onclick="sendFile()">📤 发送文件</button>
     </div>
   </div>
 
@@ -676,7 +676,7 @@
     wrap.onclick = async () => {
       upload_files()
               .then(filePaths => {
-                if (filePaths.length) {
+                if (filePaths && filePaths.length) {
                   selectedFileList = filePaths;
                   tip.textContent = `已选${filePaths.length}个文件`;
                 }

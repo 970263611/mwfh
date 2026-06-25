@@ -1,4 +1,4 @@
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, Tray, Menu} = require('electron')
 const path = require('node:path')
 const message = require('./message')
 const http = require('./http.js')
@@ -6,6 +6,8 @@ const {Low} = require('lowdb')
 const {JSONFile} = require('lowdb/node')
 
 let win
+
+if(require('electron-squirrel-startup')) app.quit()
 
 const appArgs = parseAppArgs()
 
@@ -27,9 +29,12 @@ const db = new Low(new JSONFile(dbDir), defaultData)
 })()
 
 const createWindow = () => {
+  Menu.setApplicationMenu(null)
   win = new BrowserWindow({
     width: 800,
     height: 600,
+    autoHideMenuBar: true,
+    icon: 'logo.ico',
     webPreferences: {
       devTools: true,
       contextIsolation: true,
@@ -43,13 +48,54 @@ const createWindow = () => {
       win.webContents.openDevTools({mode: 'detach'});
     }
   });
+  // ========== 关键：关闭窗口拦截 ==========
+  win.on('close', (e) => {
+    // 阻止程序真正退出
+    e.preventDefault()
+    // 隐藏窗口，后台运行
+    win.hide()
+  })
 }
 
 app.whenReady().then(() => {
   createWindow()
+  createTray()
   message.start(db)
   http.start(win, db, appArgs.port)
 })
+
+// Mac 适配：dock点击重新显示窗口
+app.on('activate', () => {
+  if (win === null) createWindow()
+  else win.show()
+})
+
+app.on('window-all-closed', (e) => {
+  e.preventDefault()
+})
+
+function createTray() {
+  tray = new Tray(path.join(__dirname, 'logo.ico'))
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '显示窗口',
+      click: () => {
+        win.show()
+      }
+    },
+    {
+      label: '退出程序',
+      click: () => {
+        win.destroy()
+        app.quit()
+      }
+    }
+  ])
+  tray.setContextMenu(contextMenu)
+  tray.on('click', () => {
+    win.isVisible() ? win.hide() : win.show()
+  })
+}
 
 /**
  * 解析启动命令行参数，兼容 --key=value 和 --key value 两种格式
