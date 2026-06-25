@@ -9,7 +9,7 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto
+      font-family: system-ui, -apple-system, Segoe UI, Roboto;
     }
 
     :root {
@@ -37,7 +37,6 @@
       color: var(--text-primary);
     }
 
-    /* 外层容器：上下两大块 */
     .wrapper {
       width: 100%;
       height: 100%;
@@ -47,14 +46,12 @@
       gap: 12px;
     }
 
-    /* 通用区块：每一块都是左右分栏 */
     .section {
       display: flex;
       gap: 12px;
       width: 100%;
     }
 
-    /* 上半块：占38%高度，左右各50% */
     .top-section {
       flex: 0 0 38%;
     }
@@ -63,7 +60,6 @@
       flex: 1;
     }
 
-    /* 下半块：占剩余全部高度，日志80% 节点20% */
     .bottom-section {
       flex: 1;
       min-height: 0;
@@ -78,7 +74,6 @@
       min-width: 260px;
     }
 
-    /* 通用卡片样式 - 所有屏幕下保持一致 */
     .card {
       background: #fff;
       border-radius: var(--card-radius);
@@ -107,7 +102,6 @@
       border-radius: 2px;
     }
 
-    /* 节点列表 - 修复按钮溢出 */
     .node-list {
       flex: 1;
       overflow-y: auto;
@@ -157,7 +151,6 @@
       flex-shrink: 0;
     }
 
-    /* 表单控件 - 样式全尺寸保持一致 */
     .form-item {
       display: flex;
       flex-direction: column;
@@ -168,6 +161,15 @@
       font-size: 13px;
       font-weight: 500;
       color: var(--text-secondary);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .form-row input {
+      flex: 1;
     }
 
     input, textarea {
@@ -183,7 +185,7 @@
     }
 
     input:focus, textarea:focus {
-      border-color: var(--primary)
+      border-color: var(--primary);
     }
 
     textarea {
@@ -193,7 +195,6 @@
       line-height: 1.5;
     }
 
-    /* 错误提示 */
     .form-error {
       color: var(--danger);
       font-size: 12px;
@@ -201,7 +202,6 @@
       display: none;
     }
 
-    /* 文件上传区 - 样式保持一致 */
     .upload-area {
       flex: 1;
       border: 2px dashed var(--border);
@@ -223,7 +223,7 @@
     }
 
     .upload-area input {
-      display: none
+      display: none;
     }
 
     .upload-area div:first-of-type {
@@ -236,7 +236,6 @@
       color: var(--text-tertiary);
     }
 
-    /* 统一按钮样式 - 全尺寸视觉完全一致 */
     .btn {
       height: 32px;
       padding: 0 16px;
@@ -294,7 +293,6 @@
       border-color: var(--danger-hover);
     }
 
-    /* 日志面板 */
     .log-box {
       width: 100%;
       height: 100%;
@@ -310,25 +308,54 @@
     .log-line {
       margin-bottom: 5px;
       line-height: 1.4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .log-content {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .log-btn {
+      flex-shrink: 0;
+      padding: 2px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #D4D4D4;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .log-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
     }
 
     .log-info {
-      color: #61AFEF
+      color: #61AFEF;
     }
 
     .log-succ {
-      color: #98C379
+      color: #98C379;
     }
 
     .log-err {
-      color: #E06C75
+      color: #E06C75;
     }
 
     .log-warn {
-      color: #E5C07B
+      color: #E5C07B;
     }
 
-    /* 弹窗 */
     .modal {
       position: fixed;
       inset: 0;
@@ -371,7 +398,6 @@
       font-size: 13px;
     }
 
-    /* ========== 新增：右下角设置齿轮按钮 ========== */
     .setting-btn {
       position: fixed;
       right: 16px;
@@ -397,73 +423,58 @@
       transform: scale(1.05);
     }
 
-    /* ========== 响应式适配 ========== */
-    /* 平板尺寸：保持左右分栏，仅压缩间距和内边距，样式完全不变 */
     @media (max-width: 1024px) {
       .wrapper {
         padding: 10px;
-        gap: 10px
+        gap: 10px;
       }
-
       .section {
-        gap: 10px
+        gap: 10px;
       }
-
       .card {
         padding: 14px;
-        gap: 10px
+        gap: 10px;
       }
-
       .bottom-section .node-card {
-        min-width: 220px
+        min-width: 220px;
       }
     }
 
-    /* 手机尺寸：布局改为上下堆叠，视觉样式和大屏完全一致 */
     @media (max-width: 768px) {
       html, body {
         overflow: auto;
         height: auto;
-        min-height: 100vh
+        min-height: 100vh;
       }
-
       .wrapper {
         height: auto;
         min-height: 100vh;
         padding: 8px;
         gap: 8px;
       }
-
       .section {
         flex-direction: column;
         gap: 8px;
       }
-
       .top-section {
         flex: none;
         height: auto;
       }
-
       .bottom-section {
         flex: none;
         min-height: unset;
       }
-
       .bottom-section .node-card {
         min-width: unset;
         min-height: 200px;
       }
-
       .log-card {
-        min-height: 300px
+        min-height: 300px;
       }
-
       .card {
         padding: 12px;
-        gap: 10px
+        gap: 10px;
       }
-
-      /* 手机缩小齿轮按钮 */
       .setting-btn {
         width: 40px;
         height: 40px;
@@ -473,36 +484,32 @@
       }
     }
 
-    /* 超低高度屏幕适配 */
     @media (max-height: 580px) {
       .wrapper {
         padding: 8px;
-        gap: 8px
+        gap: 8px;
       }
-
       .card {
         padding: 10px;
-        gap: 8px
+        gap: 8px;
       }
-
       .top-section {
-        flex: 0 0 34%
+        flex: 0 0 34%;
       }
-
       textarea {
-        min-height: 45px
+        min-height: 45px;
       }
-
       .upload-area {
-        padding: 12px
+        padding: 12px;
       }
     }
   </style>
 </head>
 <body>
 <script src="./renderer.js"></script>
+
 <div class="wrapper">
-  <!-- 第一块：上半区，左右分文字、文件 -->
+  <!-- 上半区 -->
   <div class="section top-section">
     <!-- 左侧：文字传输 -->
     <div class="card">
@@ -524,9 +531,9 @@
     </div>
   </div>
 
-  <!-- 第二块：下半区，左右分日志、节点 -->
+  <!-- 下半区 -->
   <div class="section bottom-section">
-    <!-- 左侧：交互日志（占80%） -->
+    <!-- 左侧：交互日志 -->
     <div class="card log-card">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div class="card-title">交互日志</div>
@@ -535,7 +542,7 @@
       <div class="log-box" id="logBox"></div>
     </div>
 
-    <!-- 右侧：节点配置（占20%，与日志等高） -->
+    <!-- 右侧：节点配置 -->
     <div class="card node-card">
       <div class="card-title">节点配置</div>
       <button class="btn btn-primary" onclick="openNodeModal()">➕ 添加节点</button>
@@ -544,7 +551,7 @@
   </div>
 </div>
 
-<!-- 右下角齿轮设置按钮【新增】 -->
+<!-- 右下角设置按钮 -->
 <button class="setting-btn" onclick="openSettingModal()">⚙</button>
 
 <!-- 节点弹窗 -->
@@ -569,13 +576,18 @@
   </div>
 </div>
 
-<!-- 【新增】路径设置弹窗 -->
+<!-- 系统设置弹窗 -->
 <div class="modal" id="settingModal">
   <div class="modal-inner">
-    <div class="card-title">保存路径配置</div>
+    <div class="card-title">系统设置</div>
     <div class="form-item">
-      <div style="display:flex;gap:8px;">
-        <input id="savePathInput" placeholder="请选择文件夹路径" readonly style="flex:1;">
+      <label class="form-label">当前节点名称</label>
+      <input id="currentNodeNameInput" placeholder="请填写节点名称">
+    </div>
+    <div class="form-item">
+      <label class="form-label">文件默认保存路径</label>
+      <div class="form-row">
+        <input id="savePathInput" placeholder="请选择文件夹路径" readonly>
         <button class="btn btn-default" onclick="selectSaveFolder()">选择目录</button>
       </div>
     </div>
@@ -588,19 +600,22 @@
 
 <script>
   let nodeData;
-  let saveFolderPath
-  let logData
+  let saveFolderPath;
+  let currentNodeName;
+  let logData;
   let selectedFileList = null;
-  ;(async () => {
-    nodeData = await getNodes()
-    saveFolderPath = await getSaveFolderPath()
-    logData = await getTraces()
-    // 初始化路径输入框
-    document.getElementById("savePathInput").value = saveFolderPath
+
+  (async () => {
+    nodeData = await getNodes();
+    saveFolderPath = await getSaveFolderPath();
+    currentNodeName = await getCurrentNodeName();
+    logData = await getTraces();
+    document.getElementById("savePathInput").value = saveFolderPath;
+    document.getElementById("currentNodeNameInput").value = currentNodeName;
     renderNode();
     renderLog();
     bindUpload();
-  })()
+  })();
 
   // 端口校验
   function isValidPort(port) {
@@ -622,14 +637,11 @@
   function isValidIPv6(ip) {
     if (!ip) return false;
     if (ip.split('::').length > 2) return false;
-
     const full = ip.includes('::')
             ? ip.replace('::', ':'.repeat(9 - ip.split(':').length))
             : ip;
-
     const groups = full.split(':').filter(g => g !== '');
     if (groups.length < 1 || groups.length > 8) return false;
-
     return groups.every(g => /^[0-9a-fA-F]{1,4}$/.test(g));
   }
 
@@ -638,7 +650,6 @@
     if (!addr || !addr.trim()) return false;
     const address = addr.trim();
 
-    // IPv4:端口
     if (!address.startsWith('[')) {
       const lastColon = address.lastIndexOf(':');
       if (lastColon === -1) return false;
@@ -647,7 +658,6 @@
       return isValidIPv4(ip) && isValidPort(port);
     }
 
-    // [IPv6]:端口
     if (address.startsWith('[') && address.includes(']:')) {
       const closeBracket = address.indexOf(']');
       const ip = address.substring(1, closeBracket);
@@ -663,27 +673,20 @@
     const wrap = document.getElementById("uploadDom");
     const tip = document.getElementById("fileTip");
 
-    // 点击上传区域 → 弹出系统级文件选择框
     wrap.onclick = async () => {
-      const paths = upload_files()
-      paths
+      upload_files()
               .then(filePaths => {
-                // 成功回调里拿到返回值
                 if (filePaths.length) {
                   selectedFileList = filePaths;
                   tip.textContent = `已选${filePaths.length}个文件`;
                 }
               })
               .catch(err => {
-                // 失败回调处理错误
-                pushLog("系统", "打开文件选择框失败：" + err, "log-error");
+                pushLog("系统", "打开文件选择框失败：" + err, "log-err");
               });
     };
 
-    // ========== 新增拖拽上传逻辑 ==========
-    // 1. 初始化拖拽区域
     window.ea.bindDropArea('uploadDom');
-    // 2. 监听拖拽完成事件，拿到路径数组
     wrap.addEventListener('file-drop', (e) => {
       const paths = e.detail;
       if (paths.length) {
@@ -740,14 +743,14 @@
     if (idx != -1) {
       nodeData[idx].name = nname;
       nodeData[idx].address = naddr;
-      updateNode(nname, naddr)
+      updateNode(nname, naddr);
       pushLog("系统", "更新节点：" + nname, "log-info");
     } else {
       nodeData.push({id: Date.now() + "", name: nname, address: naddr});
-      addNode(nname, naddr)
+      addNode(nname, naddr);
       pushLog("系统", "新增节点：" + nname, "log-succ");
     }
-    nodeData = await getNodes()
+    nodeData = await getNodes();
     renderNode();
     closeNodeModal();
   }
@@ -756,8 +759,8 @@
   async function deleteNode(name) {
     const item = nodeData.find(i => i.name === name);
     if (!confirm("确认删除节点【" + item.name + "】？")) return;
-    delNode(item.name)
-    nodeData = await getNodes()
+    delNode(item.name);
+    nodeData = await getNodes();
     renderNode();
     pushLog("系统", "已删除节点：" + item.name, "log-warn");
   }
@@ -766,53 +769,64 @@
   function renderNode() {
     const listDom = document.getElementById("nodeList");
     if (nodeData.length === 0) {
-      listDom.innerHTML = `<div class="empty-tip">暂无配置节点</div>`;
+      listDom.innerHTML = '<div class="empty-tip">暂无配置节点</div>';
       return;
     }
     listDom.innerHTML = nodeData.map(item => `
-    <div class="node-item">
-      <div class="node-info">
-        <div class="name">${item.name}</div>
-        <div class="addr">${item.addr}</div>
-      </div>
-      <div class="node-opt">
-        <button class="btn btn-sm btn-default" onclick='openNodeModal(${JSON.stringify(item).replace(/"/g, "&quot;")})'>编辑</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteNode('${item.name}')">删除</button>
-      </div>
-    </div>
-  `).join("");
+        <div class="node-item">
+          <div class="node-info">
+            <div class="name">${item.name}</div>
+            <div class="addr">${item.addr}</div>
+          </div>
+          <div class="node-opt">
+            <button class="btn btn-sm btn-default" onclick='openNodeModal(${JSON.stringify(item).replace(/"/g, "&quot;")})'>编辑</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteNode('${item.name}')">删除</button>
+          </div>
+        </div>
+      `).join("");
   }
 
   // 日志功能
   function pushLog(target, msg, type = "log-info") {
-    const trace = {time: new Date().toLocaleString(), target, msg, type}
+    const trace = {time: new Date().toLocaleString(), target, msg, type};
     if (logData.length > 200) logData.length = 200;
-    addTrace(trace)
-    renderLog()
+    addTrace(trace);
+    renderLog();
   }
 
   function renderLog() {
     getTraces()
             .then(traces => {
-              logData = traces
+              logData = traces;
               const box = document.getElementById("logBox");
               if (logData.length === 0) {
-                box.innerHTML = `<div class="empty-tip">暂无交互记录</div>`;
+                box.innerHTML = '<div class="empty-tip">暂无交互记录</div>';
                 return;
               }
-              box.innerHTML = logData.map(l => `
-    <div class="log-line ${l.type}">[${l.time}] [${l.target}] ${l.msg}</div>
-  `).join("");
+              box.innerHTML = logData.map((l, index) => {
+                let btnHtml = '';
+                if (l.msg.startsWith('接收到新文字信息：')) {
+                  btnHtml = `<button class="log-btn" onclick="copyLogText(${index})">复制</button>`;
+                } else if (l.msg.startsWith('接收到新文件：')) {
+                  btnHtml = `<button class="log-btn" onclick="openFileInExplorer('${l.msg}')">打开位置</button>`;
+                }
+                return `
+              <div class="log-line ${l.type}">
+                <span class="log-content">[${l.time}] [${l.target}] ${l.msg}</span>
+                ${btnHtml}
+              </div>
+            `;
+              }).join("");
               box.scrollTop = 0;
             })
             .catch(err => {
-              console.log(err)
+              console.log(err);
             });
   }
 
   function clearLog() {
     if (!confirm("清空全部日志？")) return;
-    clearTrace()
+    clearTrace();
     renderLog();
     pushLog("系统", "日志已全部清空", "log-warn");
   }
@@ -821,16 +835,18 @@
   function sendText() {
     const text = document.getElementById("msgInput").value.trim();
     if (!text) return pushLog("系统", "请输入文字内容", "log-err");
-    sendT(text)
+    sendT(text);
     pushLog("本地", "发送文本：" + text, "log-succ");
     document.getElementById("msgInput").value = "";
   }
 
   // 发送文件
   function sendFile() {
-    if (!selectedFileList || selectedFileList.length === 0) return pushLog("系统", "请选择上传文件", "log-err");
+    if (!selectedFileList || selectedFileList.length === 0) {
+      return pushLog("系统", "请选择上传文件", "log-err");
+    }
     for (let f of selectedFileList) {
-      sendF(f)
+      sendF(f);
       pushLog("本地", `上传文件：${f}`, "log-succ");
     }
     document.getElementById("fileInput").value = "";
@@ -838,45 +854,68 @@
     document.getElementById("fileTip").textContent = "未选择文件";
   }
 
-  // ==================== 新增设置弹窗JS ====================
-  // 打开设置弹窗
+  // 设置弹窗
   function openSettingModal() {
     document.getElementById("settingModal").classList.add("show");
   }
 
-  // 关闭设置弹窗
   function closeSettingModal() {
     document.getElementById("settingModal").classList.remove("show");
   }
 
-  // 选择文件夹（Electron渲染层调用主进程）
+  // 选择文件夹
   async function selectSaveFolder() {
-    // 调用主进程打开文件夹选择框，对应renderer.js中的方法
-    const path = select_folder();
-    path
+    select_folder()
             .then(folderPath => {
-              // 成功回调里拿到返回值
               if (folderPath && folderPath.length > 0) {
                 document.getElementById("savePathInput").value = folderPath;
               }
             })
             .catch(err => {
-              // 失败回调处理错误
               pushLog("系统", "选择目录失败：" + err, "log-err");
             });
   }
 
-  // 保存路径到本地存储
+  // 保存配置
   function saveSettingPath() {
     const path = document.getElementById("savePathInput").value.trim();
+    const nodeName = document.getElementById("currentNodeNameInput").value.trim();
+
     if (!path) {
       pushLog("系统", "请先选择保存文件夹", "log-warn");
       return;
     }
-    saveFolderPath = path
-    saveFolderPathToMain(saveFolderPath)
-    pushLog("系统", "文件保存路径配置已保存：" + saveFolderPath, "log-succ");
+    if (!nodeName) {
+      pushLog("系统", "请填写当前节点名称", "log-warn");
+      return;
+    }
+
+    saveFolderPath = path;
+    currentNodeName = nodeName;
+
+    saveFolderPathToMain(saveFolderPath);
+    saveCurrentNodeNameToMain(currentNodeName);
+
+    pushLog("系统", "配置已保存：节点名称「" + currentNodeName + "」，保存路径「" + saveFolderPath + "」", "log-succ");
     closeSettingModal();
+  }
+
+  // 日志操作：复制文字
+  function copyLogText(index) {
+    const text = logData[index].msg.slice(9);
+    navigator.clipboard.writeText(text).then(() => {
+    }).catch(err => {
+      pushLog("系统", "复制失败：" + err, "log-err");
+    });
+  }
+
+  // 日志操作：打开文件位置
+  function openFileInExplorer(fileName) {
+    if (window.ea) {
+      window.ea.showItem(fileName.slice(7));
+    } else {
+      pushLog("系统", "无法打开文件位置，请检查环境配置", "log-err");
+    }
   }
 </script>
 </body>

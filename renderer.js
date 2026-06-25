@@ -62,3 +62,11 @@ window.ea.onTraceShow((trace) => {
     addTrace(trace)
     renderLog()
 })
+
+function getCurrentNodeName(nodeName) {
+    return window.ea.getNodeName(nodeName)
+}
+
+function saveCurrentNodeNameToMain(nodeName) {
+    window.ea.saveNodeName(nodeName)
+}

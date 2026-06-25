@@ -7,14 +7,18 @@ contextBridge.exposeInMainWorld('ea', {
     sendT: (text) => ipcRenderer.send('sendT', text),
     sendF: (file) => ipcRenderer.send('sendF', file),
     saveFolderPath: (path) => ipcRenderer.send('saveFolderPath', path),
+    saveNodeName: (nodeName) => ipcRenderer.send('saveNodeName', nodeName),
     addTrace: (trace) => ipcRenderer.send('addTrace', trace),
     clearTrace: () => ipcRenderer.send('clearTrace'),
 
     getNodes: () => ipcRenderer.invoke('get-nodes'),
     getSaveFolderPath: () => ipcRenderer.invoke('get-save-folder-path'),
+    getNodeName: () => ipcRenderer.invoke('get-node-name'),
     getTraces: () => ipcRenderer.invoke('get-traces'),
     selectFiles: () => ipcRenderer.invoke('select-files'),
     selectSaveFolder: () => ipcRenderer.invoke('select-save-folder'),
+
+    showItem: (fileName) => ipcRenderer.send('showItem', fileName),
 
     onTraceShow: (callback) => ipcRenderer.on('trace-show', (_event, trace) => callback(trace)),
 
