@@ -21,6 +21,7 @@ const defaultData = {
   traces: [],
   nodes: [],
   saveFolderPath: '',
+  secret: ''
 }
 
 const db = new Low(new JSONFile(dbDir), defaultData)

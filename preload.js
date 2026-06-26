@@ -22,6 +22,10 @@ contextBridge.exposeInMainWorld('ea', {
 
     onTraceShow: (callback) => ipcRenderer.on('trace-show', (_event, trace) => callback(trace)),
 
+    getMySecret: () => ipcRenderer.invoke('get-my-secret'),
+
+    saveMySecret: (secretKey) => ipcRenderer.send('saveMySecret',secretKey),
+
     // 绑定拖拽区域，拖拽完成后返回绝对路径数组
     bindDropArea: (elementId) => {
         const el = document.getElementById(elementId);

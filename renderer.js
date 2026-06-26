@@ -1,14 +1,16 @@
-function addNode(name, addr) {
+function addNode(name, addr, secret) {
     window.ea.addNode({
         name: name,
-        addr: addr
+        addr: addr,
+        secret: secret
     })
 }
 
-function updateNode(name, addr) {
+function updateNode(name, addr, secret) {
     window.ea.updateNode({
         name: name,
-        addr: addr
+        addr: addr,
+        secret: secret
     })
 }
 
@@ -69,4 +71,12 @@ function getCurrentNodeName(nodeName) {
 
 function saveCurrentNodeNameToMain(nodeName) {
     window.ea.saveNodeName(nodeName)
+}
+
+async function getMySecret(){
+    window.ea.getMySecret()
+}
+
+async function saveMySecretToMain(secret){
+    window.ea.saveMySecret(secret)
 }
