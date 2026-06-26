@@ -53,7 +53,7 @@ const server = http.createServer((req, res) => {
  * @param {object} params 参数对象，自动转为 query 拼接
  * @returns {Promise<any>} 响应结果，自动尝试解析 JSON
  */
-function sendGet(secretKey, baseUrl, params = {}) {
+function sendGet(secret, baseUrl, params = {}) {
     return new Promise((resolve, reject) => {
         // 内部自动把对象转为 query 参数，拼到 URL 上
         const urlObj = new URL(baseUrl);
@@ -66,7 +66,7 @@ function sendGet(secretKey, baseUrl, params = {}) {
           path: urlObj.pathname + urlObj.search,
           method: "GET",
           headers: {
-            'Mwfh-Secret': md5('Hua' + secretKey + getNowMin())
+            'Mwfh-Secret': md5('Hua' + secret + getNowMin())
           }
         };
         const req = http.get(opt, (res) => {
@@ -112,7 +112,7 @@ function parseGetParams(req) {
  * @param {string} fieldName 表单文件字段名，默认 file
  * @returns {Promise<any>} 响应结果
  */
-function sendPostFile(secretKey, url, filePath, extraFields = {}, fieldName = 'file') {
+function sendPostFile(secret, url, filePath, extraFields = {}, fieldName = 'file') {
     return new Promise((resolve, reject) => {
         const urlObj = new URL(url);
         const fileName = path.basename(filePath);
@@ -128,7 +128,7 @@ function sendPostFile(secretKey, url, filePath, extraFields = {}, fieldName = 'f
             method: 'POST',
             headers: {
                 'Content-Type': `multipart/form-data; boundary=${boundary}`,
-                'Mwfh-Secret': md5('Hua' + secretKey + getNowMin())
+                'Mwfh-Secret': md5('Hua' + secret + getNowMin())
             }
         };
         const req = http.request(options, (res) => {
