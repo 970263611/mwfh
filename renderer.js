@@ -74,7 +74,7 @@ function saveCurrentNodeNameToMain(nodeName) {
 }
 
 async function getMySecret(){
-    window.ea.getMySecret()
+    return window.ea.getMySecret()
 }
 
 async function saveMySecretToMain(secret){
