@@ -34,14 +34,14 @@
     "productName": "mwfh",
     "win": {
       "target": ["nsis", "zip"],
-      "icon": "./logo.ico"
+      "icon": "./logo.png"
     },
     "mac": {
       "target": [
         "dmg",
         "zip"
       ],
-      "icon": "./logo.icns"
+      "icon": "./logo.png"
     },
     "linux": {
       "target": [
@@ -62,8 +62,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "installerIcon": "./logo.ico",
-      "uninstallerIcon": "./logo.ico",
+      "installerIcon": "./logo.png",
+      "uninstallerIcon": "./logo.png",
       "shortcutName": "mwfh"
     }
   }

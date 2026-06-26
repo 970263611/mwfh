@@ -1,32 +1,15 @@
-const {app, BrowserWindow, Tray, Menu} = require('electron')
+const {app, BrowserWindow, Tray, Menu, nativeImage} = require('electron')
 const path = require('node:path')
 const message = require('./message')
 const http = require('./http.js')
-const {Low} = require('lowdb')
-const {JSONFile} = require('lowdb/node')
+const dbManager = require('./db.js')
 
 let win
-
-if(require('electron-squirrel-startup')) app.quit()
+let isQuitting //兼容mac退出
 
 const appArgs = parseAppArgs()
 
-let dbDir = path.join(__dirname, 'db.json')
-if (appArgs.dbDir) {
-  dbDir = path.join(appArgs.dbDir, 'db.json')
-}
-
-const defaultData = {
-  nodeName: '',
-  traces: [],
-  nodes: [],
-  saveFolderPath: '',
-}
-
-const db = new Low(new JSONFile(dbDir), defaultData)
-;(async () => {
-  await db.read()
-})()
+const db = dbManager.start(appArgs)
 
 const createWindow = () => {
   Menu.setApplicationMenu(null)
@@ -50,6 +33,7 @@ const createWindow = () => {
   });
   // ========== 关键：关闭窗口拦截 ==========
   win.on('close', (e) => {
+    if (isQuitting) return
     // 阻止程序真正退出
     e.preventDefault()
     // 隐藏窗口，后台运行
@@ -66,20 +50,33 @@ app.whenReady().then(() => {
   createTray()
   message.start(win, db)
   http.start(win, db, appArgs.port)
+  if (process.platform === 'darwin') {
+    const dockIconPath = path.join(__dirname, './logo.png')
+    app.dock.setIcon(dockIconPath)
+  }
 })
 
-// Mac 适配：dock点击重新显示窗口
+//mac兼容
+app.on('before-quit', () => {
+  isQuitting = true
+})
+app.on('window-all-closed', () => {
+  // Windows/Linux 全部窗口关闭直接退出
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
 app.on('activate', () => {
-  if (win === null) createWindow()
-  else win.show()
-})
-
-app.on('window-all-closed', (e) => {
-  e.preventDefault()
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow()
+  } else {
+    win.show()
+    win.focus()
+  }
 })
 
 function createTray() {
-  tray = new Tray(path.join(__dirname, getIcon()))
+  const tray = new Tray(getIcon())
   const contextMenu = Menu.buildFromTemplate([
     {
       label: '显示窗口',
@@ -95,9 +92,17 @@ function createTray() {
       }
     }
   ])
-  tray.setContextMenu(contextMenu)
+
   tray.on('click', () => {
-    win.isVisible() ? win.hide() : win.show()
+    if (win.isVisible()) win.hide()
+    else {
+      win.show()
+      win.focus()
+    }
+  })
+
+  tray.on('right-click', () => {
+    tray.popUpContextMenu(contextMenu)
   })
 }
 
@@ -135,14 +140,5 @@ function parseAppArgs() {
 }
 
 function getIcon() {
-  const platform = process.platform
-  let logo
-  if (platform === 'win32') {
-    logo = 'logo.ico'
-  } else if (platform === 'darwin') {
-    logo = 'logo.png'
-  } else if (platform === 'linux') {
-    logo = 'logo.png'
-  }
-  return logo
+  return nativeImage.createFromPath(path.join(__dirname, 'logo.png'))
 }
