@@ -34,7 +34,7 @@ const createWindow = () => {
     width: 800,
     height: 600,
     autoHideMenuBar: true,
-    icon: 'logo.ico',
+    icon: getIcon(),
     webPreferences: {
       devTools: true,
       contextIsolation: true,
@@ -58,9 +58,13 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
+  // if (process.platform === 'darwin') {
+  //   const dockIcon = path.join(__dirname, './logo.icns')
+  //   app.dock.setIcon(dockIcon)
+  // }
   createWindow()
   createTray()
-  message.start(db)
+  message.start(win, db)
   http.start(win, db, appArgs.port)
 })
 
@@ -75,7 +79,7 @@ app.on('window-all-closed', (e) => {
 })
 
 function createTray() {
-  tray = new Tray(path.join(__dirname, 'logo.ico'))
+  tray = new Tray(path.join(__dirname, getIcon()))
   const contextMenu = Menu.buildFromTemplate([
     {
       label: '显示窗口',
@@ -128,4 +132,17 @@ function parseAppArgs() {
   }
 
   return args;
+}
+
+function getIcon() {
+  const platform = process.platform
+  let logo
+  if (platform === 'win32') {
+    logo = 'logo.ico'
+  } else if (platform === 'darwin') {
+    logo = 'logo.png'
+  } else if (platform === 'linux') {
+    logo = 'logo.png'
+  }
+  return logo
 }

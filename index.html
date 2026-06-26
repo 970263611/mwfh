@@ -788,7 +788,7 @@
 
   // 日志功能
   function pushLog(target, msg, type = "log-info") {
-    const trace = {time: new Date().toLocaleString(), target, msg, type};
+    const trace = {time: new Date().toLocaleString('zh-CN'), target, msg, type};
     if (logData.length > 200) logData.length = 200;
     addTrace(trace);
     renderLog();
@@ -820,7 +820,7 @@
               box.scrollTop = 0;
             })
             .catch(err => {
-              console.log(err);
+              console.log(err)
             });
   }
 

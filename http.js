@@ -14,7 +14,7 @@ const server = http.createServer((req, res) => {
     if (pathname === '/' && req.method === 'GET') {
         const params = parseGetParams(req)
         const trace = {
-            "time": new Date().toLocaleString(),
+            "time": new Date().toLocaleString('zh-CN'),
             "target": params.name,
             "msg": "接收到新文字信息：" + params.data,
             "type": "log-succ"
@@ -25,7 +25,7 @@ const server = http.createServer((req, res) => {
         savePostFile(req, db.data.saveFolderPath).then((result) => {
             const nodeName = result.fields.name
             const trace = {
-                "time": new Date().toLocaleString(),
+                "time": new Date().toLocaleString('zh-CN'),
                 "target": nodeName,
                 "msg": "接收到新文件：" + result.fields.fileName,
                 "type": "log-succ"
@@ -268,7 +268,15 @@ function start(mainWin, mainDb, mainPort) {
         port = Number(mainPort)
     }
     server.listen(port, () => {
-        console.log(`服务启动成功：http://localhost:${port}`)
+        const trace = {
+            "time": new Date().toLocaleString('zh-CN'),
+            "target": '系统',
+            "msg": `服务启动成功：http://localhost:${port}`,
+            "type": "log-succ"
+        }
+        setTimeout(() => {
+            win.webContents.send('trace-show', trace)
+        }, 5000);
     })
 }
 

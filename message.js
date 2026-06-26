@@ -2,6 +2,8 @@ const {dialog, ipcMain, shell} = require('electron')
 const path = require('node:path')
 const os = require('os')
 const http = require('./http')
+
+let win
 let db
 
 ipcMain.on('addNode', async (event, node) => {
@@ -37,7 +39,15 @@ ipcMain.on('sendT', (event, text) => {
         http.sendGet(addr, {
             name: db.data.nodeName,
             data: text
-        }).then().catch(err => console.log(err))
+        }).then().catch(err => {
+            const trace = {
+                "time": new Date().toLocaleString('zh-CN'),
+                "target": '错误',
+                "msg": err,
+                "type": "log-err"
+            }
+            win.webContents.send('trace-show', trace)
+        })
     }
 })
 ipcMain.on('sendF', (event, file) => {
@@ -50,7 +60,15 @@ ipcMain.on('sendF', (event, file) => {
         http.sendPostFile(addr, file, {
             name: db.data.nodeName,
             fileName: fileName
-        }, fileName).then().catch(err => console.log(err))
+        }, fileName).then().catch(err => {
+            const trace = {
+                "time": new Date().toLocaleString('zh-CN'),
+                "target": '错误',
+                "msg": err,
+                "type": "log-err"
+            }
+            win.webContents.send('trace-show', trace)
+        })
     }
 })
 ipcMain.on('saveFolderPath', async (event, path) => {
@@ -142,7 +160,8 @@ function getMac() {
     return candidates.length > 0 ? candidates[0].mac : '';
 }
 
-function start(mainDb) {
+function start(mainWin, mainDb) {
+    win = mainWin
     db = mainDb
 }
 
