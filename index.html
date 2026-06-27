@@ -1,922 +1,1014 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>花之交互工具</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>花之交互工具</title>
+    <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
 
-    :root {
-      --primary: #165DFF;
-      --primary-hover: #0E42D2;
-      --danger: #F53F3F;
-      --danger-hover: #D83636;
-      --text-primary: #1D2129;
-      --text-secondary: #4E5969;
-      --text-tertiary: #86909C;
-      --border: #E5E6EB;
-      --border-hover: #C9CDD4;
-      --bg-light: #F7F8FA;
-      --bg-hover: #F2F3F5;
-      --dark-bg: #1E1E2E;
-      --card-radius: 10px;
-      --btn-radius: 6px;
-    }
+        :root {
+          /* macOS 原生系统色 */
+          --apple-blue: #007AFF;
+          --apple-blue-hover: #0066DD;
+          --apple-green: #34C759;
+          --apple-red: #FF3B30;
+          --apple-red-hover: #E6352B;
+          --apple-orange: #FF9500;
+          --apple-gray1: #1D1D1F;
+          --apple-gray2: #6E6E73;
+          --apple-gray3: #8E8E93;
+          --apple-gray4: #D2D2D7;
+          --apple-gray5: #E5E5EA;
+          --apple-bg-window: #F5F5F7;
+          --apple-bg-card: #FFFFFF;
+          --apple-bg-hover: #E8E8ED;
+          --apple-dark-bg: #1C1C1E;
+          /* 圆角尺寸 */
+          --radius-xs: 6px;
+          --radius-sm: 8px;
+          --radius-md: 12px;
+          --radius-lg: 16px;
+          --radius-full: 999px;
+          /* 阴影 */
+          --shadow-light: 0 1px 4px rgba(0,0,0,0.04);
+          --shadow-card: 0 2px 10px rgba(0,0,0,0.06);
+          --shadow-float: 0 8px 30px rgba(0,0,0,0.12);
+        }
 
-    html, body {
-      height: 100vh;
-      min-width: 320px;
-      overflow: hidden;
-      background: var(--bg-light);
-      color: var(--text-primary);
-    }
+        html, body {
+          height: 100vh;
+          min-width: 320px;
+          overflow: hidden;
+          background: var(--apple-bg-window);
+          color: var(--apple-gray1);
+        }
 
-    .wrapper {
-      width: 100%;
-      height: 100%;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+        .wrapper {
+          width: 100%;
+          height: 100%;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
 
-    .section {
-      display: flex;
-      gap: 12px;
-      width: 100%;
-    }
+        .section {
+          display: flex;
+          gap: 16px;
+          width: 100%;
+        }
 
-    .top-section {
-      flex: 0 0 38%;
-    }
+        .top-section {
+          flex: 0 0 38%;
+        }
 
-    .top-section .card {
-      flex: 1;
-    }
+        .top-section .card {
+          flex: 1;
+        }
 
-    .bottom-section {
-      flex: 1;
-      min-height: 0;
-    }
+        .bottom-section {
+          flex: 1;
+          min-height: 0;
+        }
 
-    .bottom-section .log-card {
-      flex: 8;
-    }
+        .bottom-section .log-card {
+          flex: 8;
+        }
 
-    .bottom-section .node-card {
-      flex: 2;
-      min-width: 260px;
-    }
+        .bottom-section .node-card {
+          flex: 2;
+          min-width: 260px;
+        }
 
-    .card {
-      background: #fff;
-      border-radius: var(--card-radius);
-      box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      overflow: hidden;
-    }
+        .card {
+          background: var(--apple-bg-card);
+          border-radius: var(--radius-lg);
+          box-shadow: var(--shadow-light);
+          border: 1px solid var(--apple-gray5);
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          overflow: hidden;
+        }
 
-    .card-title {
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-primary);
-    }
+        .card-title {
+          font-size: 17px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: var(--apple-gray1);
+        }
 
-    .card-title::before {
-      content: "";
-      width: 4px;
-      height: 16px;
-      background: var(--primary);
-      border-radius: 2px;
-    }
+        .card-title::before {
+          content: "";
+          width: 4px;
+          height: 18px;
+          background: var(--apple-blue);
+          border-radius: var(--radius-full);
+        }
 
-    .node-list {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+        .node-list {
+          flex: 1;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
 
-    .node-item {
-      padding: 8px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--bg-light);
-      gap: 8px;
-    }
+        .node-item {
+          padding: 12px 14px;
+          border: 1px solid var(--apple-gray5);
+          border-radius: var(--radius-md);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: var(--apple-bg-window);
+          gap: 10px;
+          transition: background 0.2s ease;
+        }
+        .node-item:hover {
+          background: var(--apple-bg-hover);
+        }
 
-    .node-info {
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-    }
+        .node-info {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+        }
 
-    .node-info .name {
-      font-weight: 500;
-      font-size: 14px;
-      color: var(--text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+        .node-info .name {
+          font-weight: 500;
+          font-size: 15px;
+          color: var(--apple-gray1);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
 
-    .node-info .addr {
-      font-size: 12px;
-      color: var(--text-tertiary);
-      margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+        .node-info .addr {
+          font-size: 12px;
+          color: var(--apple-gray3);
+          margin-top: 3px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
 
-    .node-opt {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
+        .node-opt {
+          display: flex;
+          gap: 8px;
+          flex-shrink: 0;
+        }
 
-    .form-item {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+        .form-item {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
 
-    .form-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
+        .form-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--apple-gray2);
+        }
 
-    .form-row {
-      display: flex;
-      gap: 8px;
-    }
+        .form-row {
+          display: flex;
+          gap: 10px;
+        }
 
-    .form-row input {
-      flex: 1;
-    }
+        .form-row input {
+          flex: 1;
+        }
 
-    input, textarea {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: var(--btn-radius);
-      font-size: 14px;
-      outline: none;
-      transition: border-color .2s;
-      color: var(--text-primary);
-      font-family: inherit;
-    }
+        .input-pwd-wrap {
+          position: relative;
+          width: 100%;
+        }
+        .input-pwd-wrap input {
+          padding-right: 40px;
+        }
+        .pwd-eye-btn {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: transparent;
+          border: none;
+          font-size: 17px;
+          cursor: pointer;
+          color: var(--apple-gray3);
+          width: 26px;
+          height: 26px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: var(--radius-full);
+          transition: background 0.2s;
+        }
+        .pwd-eye-btn:hover {
+          background: var(--apple-gray5);
+        }
 
-    input:focus, textarea:focus {
-      border-color: var(--primary);
-    }
+        input, textarea {
+          width: 100%;
+          padding: 10px 14px;
+          border: 1px solid var(--apple-gray4);
+          border-radius: var(--radius-sm);
+          font-size: 15px;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          color: var(--apple-gray1);
+          font-family: inherit;
+          background: #fff;
+        }
 
-    textarea {
-      flex: 1;
-      resize: none;
-      min-height: 60px;
-      line-height: 1.5;
-    }
+        input:focus, textarea:focus {
+          border-color: var(--apple-blue);
+          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+        }
 
-    .form-error {
-      color: var(--danger);
-      font-size: 12px;
-      line-height: 1.4;
-      display: none;
-    }
+        textarea {
+          flex: 1;
+          resize: none;
+          min-height: 70px;
+          line-height: 1.45;
+        }
 
-    .upload-area {
-      flex: 1;
-      border: 2px dashed var(--border);
-      border-radius: var(--btn-radius);
-      padding: 20px 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: .2s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
+        .form-error {
+          color: var(--apple-red);
+          font-size: 12px;
+          line-height: 1.4;
+          display: none;
+        }
 
-    .upload-area:hover {
-      border-color: var(--primary);
-      background: rgba(22, 93, 255, 0.02);
-    }
+        .upload-area {
+          flex: 1;
+          border: 2px dashed var(--apple-gray4);
+          border-radius: var(--radius-md);
+          padding: 24px 12px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: rgba(0,122,255,0.02);
+        }
 
-    .upload-area input {
-      display: none;
-    }
+        .upload-area:hover {
+          border-color: var(--apple-blue);
+          background: rgba(0, 122, 255, 0.06);
+        }
 
-    .upload-area div:first-of-type {
-      font-size: 28px;
-      opacity: 0.8;
-    }
+        .upload-area input {
+          display: none;
+        }
 
-    .upload-tip {
-      font-size: 13px;
-      color: var(--text-tertiary);
-    }
+        .upload-area div:first-of-type {
+          font-size: 32px;
+          opacity: 0.7;
+        }
 
-    .btn {
-      height: 32px;
-      padding: 0 16px;
-      border: 1px solid transparent;
-      border-radius: var(--btn-radius);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-      background: #fff;
-      color: var(--text-primary);
-      white-space: nowrap;
-    }
+        .upload-tip {
+          font-size: 13px;
+          color: var(--apple-gray3);
+        }
 
-    .btn-sm {
-      height: 24px;
-      padding: 0 10px;
-      font-size: 12px;
-    }
+        .btn {
+          height: 36px;
+          padding: 0 18px;
+          border: 1px solid var(--apple-gray4);
+          border-radius: var(--radius-sm);
+          font-size: 15px;
+          font-weight: 500;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: all 0.2s ease;
+          background: #fff;
+          color: var(--apple-gray1);
+          white-space: nowrap;
+        }
 
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-    }
+        .btn-sm {
+          height: 28px;
+          padding: 0 12px;
+          font-size: 13px;
+        }
 
-    .btn-primary:hover {
-      background: var(--primary-hover);
-      border-color: var(--primary-hover);
-    }
+        .btn-primary {
+          background: var(--apple-blue);
+          color: #fff;
+          border-color: transparent;
+        }
 
-    .btn-default {
-      background: #fff;
-      color: var(--text-primary);
-      border-color: var(--border);
-    }
+        .btn-primary:hover {
+          background: var(--apple-blue-hover);
+        }
 
-    .btn-default:hover {
-      background: var(--bg-hover);
-      border-color: var(--border-hover);
-    }
+        .btn-default:hover {
+          background: var(--apple-bg-hover);
+        }
 
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-      border-color: var(--danger);
-    }
+        .btn-danger {
+          background: var(--apple-red);
+          color: #fff;
+          border-color: transparent;
+        }
 
-    .btn-danger:hover {
-      background: var(--danger-hover);
-      border-color: var(--danger-hover);
-    }
+        .btn-danger:hover {
+          background: var(--apple-red-hover);
+        }
 
-    .log-box {
-      width: 100%;
-      height: 100%;
-      background: var(--dark-bg);
-      border-radius: var(--btn-radius);
-      padding: 10px;
-      overflow-y: auto;
-      font-family: Consolas, monospace;
-      font-size: 12px;
-      color: #D4D4D4;
-    }
+        .log-box {
+          width: 100%;
+          height: 100%;
+          background: var(--apple-dark-bg);
+          border-radius: var(--radius-md);
+          padding: 14px;
+          overflow-y: auto;
+          font-family: Menlo, Monaco, Consolas, monospace;
+          font-size: 12px;
+          color: #EBEBF0;
+        }
 
-    .log-line {
-      margin-bottom: 5px;
-      line-height: 1.4;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
+        .log-line {
+          margin-bottom: 8px;
+          line-height: 1.4;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        }
 
-    .log-content {
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+        .log-content {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
 
-    .log-btn {
-      flex-shrink: 0;
-      padding: 2px 8px;
-      font-size: 12px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #D4D4D4;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
+        .log-btn {
+          flex-shrink: 0;
+          padding: 3px 9px;
+          font-size: 11px;
+          border-radius: var(--radius-xs);
+          background: rgba(255, 255, 255, 0.08);
+          color: #EBEBF0;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: inherit;
+        }
 
-    .log-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
+        .log-btn:hover {
+          background: rgba(255, 255, 255, 0.16);
+        }
 
-    .log-info {
-      color: #61AFEF;
-    }
+        .log-info {
+          color: #5AC8FA;
+        }
 
-    .log-succ {
-      color: #98C379;
-    }
+        .log-succ {
+          color: var(--apple-green);
+        }
 
-    .log-err {
-      color: #E06C75;
-    }
+        .log-err {
+          color: #FF453A;
+        }
 
-    .log-warn {
-      color: #E5C07B;
-    }
+        .log-warn {
+          color: var(--apple-orange);
+        }
 
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 99;
-      opacity: 0;
-      visibility: hidden;
-      transition: .2s;
-      padding: 20px;
-    }
+        .modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.35);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 99;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.2s ease, visibility 0.2s;
+          padding: 20px;
+        }
 
-    .modal.show {
-      opacity: 1;
-      visibility: visible;
-    }
+        .modal.show {
+          opacity: 1;
+          visibility: visible;
+        }
 
-    .modal-inner {
-      width: min(100%, 460px);
-      background: #fff;
-      border-radius: var(--card-radius);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+        .modal-inner {
+          width: min(100%, 480px);
+          background: #fff;
+          border-radius: var(--radius-lg);
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+          box-shadow: var(--shadow-float);
+          border: 1px solid var(--apple-gray5);
+        }
 
-    .modal-foot {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
+        .modal-foot {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+        }
 
-    .empty-tip {
-      text-align: center;
-      color: var(--text-tertiary);
-      padding: 20px 0;
-      font-size: 13px;
-    }
+        .empty-tip {
+          text-align: center;
+          color: var(--apple-gray3);
+          padding: 24px 0;
+          font-size: 14px;
+        }
 
-    .setting-btn {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      box-shadow: 0 3px 12px rgba(22, 93, 255, 0.3);
-      font-size: 20px;
-      cursor: pointer;
-      z-index: 90;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
+        .setting-btn {
+          position: fixed;
+          right: 20px;
+          bottom: 20px;
+          width: 48px;
+          height: 48px;
+          border-radius: var(--radius-full);
+          background: var(--apple-blue);
+          color: #fff;
+          border: none;
+          box-shadow: var(--shadow-card);
+          font-size: 22px;
+          cursor: pointer;
+          z-index: 90;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
 
-    .setting-btn:hover {
-      background: var(--primary-hover);
-      transform: scale(1.05);
-    }
+        .setting-btn:hover {
+          background: var(--apple-blue-hover);
+          transform: scale(1.06);
+        }
 
-    @media (max-width: 1024px) {
-      .wrapper {
-        padding: 10px;
-        gap: 10px;
-      }
-      .section {
-        gap: 10px;
-      }
-      .card {
-        padding: 14px;
-        gap: 10px;
-      }
-      .bottom-section .node-card {
-        min-width: 220px;
-      }
-    }
+        @media (max-width: 1024px) {
+          .wrapper {
+            padding: 12px;
+            gap: 12px;
+          }
+          .section {
+            gap: 12px;
+          }
+          .card {
+            padding: 16px;
+            gap: 14px;
+          }
+          .bottom-section .node-card {
+            min-width: 220px;
+          }
+          .setting-btn {
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+            right: 16px;
+            bottom: 16px;
+          }
+        }
 
-    @media (max-width: 768px) {
-      html, body {
-        overflow: auto;
-        height: auto;
-        min-height: 100vh;
-      }
-      .wrapper {
-        height: auto;
-        min-height: 100vh;
-        padding: 8px;
-        gap: 8px;
-      }
-      .section {
-        flex-direction: column;
-        gap: 8px;
-      }
-      .top-section {
-        flex: none;
-        height: auto;
-      }
-      .bottom-section {
-        flex: none;
-        min-height: unset;
-      }
-      .bottom-section .node-card {
-        min-width: unset;
-        min-height: 200px;
-      }
-      .log-card {
-        min-height: 300px;
-      }
-      .card {
-        padding: 12px;
-        gap: 10px;
-      }
-      .setting-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-        right: 12px;
-        bottom: 12px;
-      }
-    }
+        @media (max-width: 768px) {
+          html, body {
+            overflow: auto;
+            height: auto;
+            min-height: 100vh;
+          }
+          .wrapper {
+            height: auto;
+            min-height: 100vh;
+            padding: 10px;
+            gap: 10px;
+          }
+          .section {
+            flex-direction: column;
+            gap: 10px;
+          }
+          .top-section {
+            flex: none;
+            height: auto;
+          }
+          .bottom-section {
+            flex: none;
+            min-height: unset;
+          }
+          .bottom-section .node-card {
+            min-width: unset;
+            min-height: 200px;
+          }
+          .log-card {
+            min-height: 300px;
+          }
+          .card {
+            padding: 14px;
+            gap: 12px;
+          }
+          .setting-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            right: 14px;
+            bottom: 14px;
+          }
+        }
 
-    @media (max-height: 580px) {
-      .wrapper {
-        padding: 8px;
-        gap: 8px;
-      }
-      .card {
-        padding: 10px;
-        gap: 8px;
-      }
-      .top-section {
-        flex: 0 0 34%;
-      }
-      textarea {
-        min-height: 45px;
-      }
-      .upload-area {
-        padding: 12px;
-      }
-    }
-  </style>
+        @media (max-height: 580px) {
+          .wrapper {
+            padding: 10px;
+            gap: 10px;
+          }
+          .card {
+            padding: 12px;
+            gap: 10px;
+          }
+          .top-section {
+            flex: 0 0 34%;
+          }
+          textarea {
+            min-height: 45px;
+          }
+          .upload-area {
+            padding: 14px;
+          }
+        }
+    </style>
 </head>
 <body>
 <script src="./renderer.js"></script>
 
 <div class="wrapper">
-  <!-- 上半区 -->
-  <div class="section top-section">
-    <!-- 左侧：文字传输 -->
-    <div class="card">
-      <div class="card-title">文字消息传输</div>
-      <textarea id="msgInput" placeholder="请输入要传输的文字内容..."></textarea>
-      <button class="btn btn-primary" onclick="sendText()">📤 发送文字</button>
+    <!-- 上半区 -->
+    <div class="section top-section">
+        <!-- 左侧：文字传输 -->
+        <div class="card">
+            <div class="card-title">文字消息传输</div>
+            <textarea id="msgInput" placeholder="请输入要传输的文字内容..."></textarea>
+            <button class="btn btn-primary" onclick="sendText()">↑ 发送文字</button>
+        </div>
+
+        <!-- 右侧：文件传输 -->
+        <div class="card">
+            <div class="card-title">文件传输上传</div>
+            <div class="upload-area" id="uploadDom">
+                <div>📂</div>
+                <div>点击或拖拽文件到此处上传</div>
+                <input type="file" id="fileInput" multiple>
+                <div class="upload-tip" id="fileTip">未选择文件</div>
+            </div>
+            <button class="btn btn-primary" onclick="sendFile()">↑ 发送文件</button>
+        </div>
     </div>
 
-    <!-- 右侧：文件传输 -->
-    <div class="card">
-      <div class="card-title">文件传输上传</div>
-      <div class="upload-area" id="uploadDom">
-        <div>📁</div>
-        <div>点击或拖拽文件到此处上传</div>
-        <input type="file" id="fileInput" multiple>
-        <div class="upload-tip" id="fileTip">未选择文件</div>
-      </div>
-      <button class="btn btn-primary" onclick="sendFile()">📤 发送文件</button>
-    </div>
-  </div>
+    <!-- 下半区 -->
+    <div class="section bottom-section">
+        <!-- 左侧：交互日志 -->
+        <div class="card log-card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <div class="card-title">交互日志</div>
+                <button class="btn btn-sm btn-danger" onclick="clearLog()">清空</button>
+            </div>
+            <div class="log-box" id="logBox"></div>
+        </div>
 
-  <!-- 下半区 -->
-  <div class="section bottom-section">
-    <!-- 左侧：交互日志 -->
-    <div class="card log-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="card-title">交互日志</div>
-        <button class="btn btn-sm btn-danger" onclick="clearLog()">清空日志</button>
-      </div>
-      <div class="log-box" id="logBox"></div>
+        <!-- 右侧：节点配置 -->
+        <div class="card node-card">
+            <div class="card-title">节点配置</div>
+            <button class="btn btn-primary" onclick="openNodeModal()">+ 添加节点</button>
+            <div class="node-list" id="nodeList"></div>
+        </div>
     </div>
-
-    <!-- 右侧：节点配置 -->
-    <div class="card node-card">
-      <div class="card-title">节点配置</div>
-      <button class="btn btn-primary" onclick="openNodeModal()">➕ 添加节点</button>
-      <div class="node-list" id="nodeList"></div>
-    </div>
-  </div>
 </div>
 
 <!-- 右下角设置按钮 -->
-<button class="setting-btn" onclick="openSettingModal()">⚙</button>
+<button class="setting-btn" onclick="openSettingModal()">⚙︎</button>
 
-<!-- 节点弹窗 -->
+<!-- 节点弹窗【新增节点密钥输入框】 -->
 <div class="modal" id="nodeModal">
-  <div class="modal-inner">
-    <div class="card-title">编辑/新增交互节点</div>
-    <div class="form-item">
-      <label class="form-label">节点名称</label>
-      <input id="nodeName" placeholder="例如：业务系统A">
+    <div class="modal-inner">
+        <div class="card-title">编辑/新增交互节点</div>
+        <div class="form-item">
+            <label class="form-label">节点名称</label>
+            <input id="nodeName" placeholder="例如：业务系统A">
+        </div>
+        <div class="form-item">
+            <label class="form-label">节点地址（IP:端口）</label>
+            <input id="nodeAddr" placeholder="例如：192.168.1.1:8080 或 [::1]:8080">
+            <div class="form-error" id="addrError">
+                格式错误，仅支持 IPv4:端口（如 192.168.1.1:8080）或 [IPv6]:端口（如 [::1]:8080）
+            </div>
+        </div>
+        <!-- 新增节点独立密钥 -->
+        <div class="form-item">
+            <label class="form-label">节点通讯密钥</label>
+            <div class="input-pwd-wrap">
+                <input id="nodeSecret" type="password" placeholder="填写该节点独立通讯密钥">
+                <button type="button" class="pwd-eye-btn" onclick="togglePwd('nodeSecret')">👁︎</button>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn btn-default" onclick="closeNodeModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveNode()">储存</button>
+        </div>
     </div>
-    <div class="form-item">
-      <label class="form-label">节点地址（IP:端口）</label>
-      <input id="nodeAddr" placeholder="例如：192.168.1.1:8080 或 [::1]:8080">
-      <div class="form-error" id="addrError">
-        格式错误，仅支持 IPv4:端口（如 192.168.1.1:8080）或 [IPv6]:端口（如 [::1]:8080）
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-default" onclick="closeNodeModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveNode()">保存</button>
-    </div>
-  </div>
 </div>
 
 <!-- 系统设置弹窗 -->
 <div class="modal" id="settingModal">
-  <div class="modal-inner">
-    <div class="card-title">系统设置</div>
-    <div class="form-item">
-      <label class="form-label">当前节点名称</label>
-      <input id="currentNodeNameInput" placeholder="请填写节点名称">
+    <div class="modal-inner">
+        <div class="card-title">系统设置</div>
+        <div class="form-item">
+            <label class="form-label">当前节点名称</label>
+            <input id="currentNodeNameInput" placeholder="请填写节点名称">
+        </div>
+        <!-- 新增密钥输入框 -->
+        <div class="form-item">
+            <label class="form-label">全局通讯密钥</label>
+            <div class="input-pwd-wrap">
+                <input id="secretKeyInput" placeholder="输入通讯加密密钥" type="password">
+                <button type="button" class="pwd-eye-btn" onclick="togglePwd('secretKeyInput')">👁︎</button>
+            </div>
+        </div>
+        <div class="form-item">
+            <label class="form-label">文件默认保存路径</label>
+            <div class="form-row">
+                <input id="savePathInput" placeholder="请选择文件夹路径" readonly>
+                <button class="btn btn-default" onclick="selectSaveFolder()">浏览</button>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn btn-default" onclick="closeSettingModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveSettingPath()">储存配置</button>
+        </div>
     </div>
-    <div class="form-item">
-      <label class="form-label">文件默认保存路径</label>
-      <div class="form-row">
-        <input id="savePathInput" placeholder="请选择文件夹路径" readonly>
-        <button class="btn btn-default" onclick="selectSaveFolder()">选择目录</button>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-default" onclick="closeSettingModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveSettingPath()">保存配置</button>
-    </div>
-  </div>
 </div>
 
 <script>
-  let nodeData;
-  let saveFolderPath;
-  let currentNodeName;
-  let logData;
-  let selectedFileList = null;
+    let nodeData;
+    let saveFolderPath;
+    let currentNodeName;
+    let secretKey; // 全局密钥变量
+    let logData;
+    let selectedFileList = null;
 
-  (async () => {
-    nodeData = await getNodes();
-    saveFolderPath = await getSaveFolderPath();
-    currentNodeName = await getCurrentNodeName();
-    logData = await getTraces();
-    document.getElementById("savePathInput").value = saveFolderPath;
-    document.getElementById("currentNodeNameInput").value = currentNodeName;
-    renderNode();
-    renderLog();
-    bindUpload();
-  })();
-
-  // 端口校验
-  function isValidPort(port) {
-    const p = parseInt(port, 10);
-    return !isNaN(p) && p >= 1 && p <= 65535;
-  }
-
-  // IPv4校验
-  function isValidIPv4(ip) {
-    const parts = ip.split('.');
-    if (parts.length !== 4) return false;
-    return parts.every(part => {
-      const num = parseInt(part, 10);
-      return !isNaN(num) && num >= 0 && num <= 255 && part === num.toString();
-    });
-  }
-
-  // IPv6校验
-  function isValidIPv6(ip) {
-    if (!ip) return false;
-    if (ip.split('::').length > 2) return false;
-    const full = ip.includes('::')
-            ? ip.replace('::', ':'.repeat(9 - ip.split(':').length))
-            : ip;
-    const groups = full.split(':').filter(g => g !== '');
-    if (groups.length < 1 || groups.length > 8) return false;
-    return groups.every(g => /^[0-9a-fA-F]{1,4}$/.test(g));
-  }
-
-  // 节点地址总校验
-  function validateNodeAddress(addr) {
-    if (!addr || !addr.trim()) return false;
-    const address = addr.trim();
-
-    if (!address.startsWith('[')) {
-      const lastColon = address.lastIndexOf(':');
-      if (lastColon === -1) return false;
-      const ip = address.substring(0, lastColon);
-      const port = address.substring(lastColon + 1);
-      return isValidIPv4(ip) && isValidPort(port);
+    // 密码显示隐藏切换函数
+    function togglePwd(inputId) {
+        const input = document.getElementById(inputId);
+        const btn = input.nextElementSibling;
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '👁';
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁︎';
+        }
     }
 
-    if (address.startsWith('[') && address.includes(']:')) {
-      const closeBracket = address.indexOf(']');
-      const ip = address.substring(1, closeBracket);
-      const port = address.substring(closeBracket + 2);
-      return isValidIPv6(ip) && isValidPort(port);
+    (async () => {
+      nodeData = await getNodes();
+      saveFolderPath = await getSaveFolderPath();
+      currentNodeName = await getCurrentNodeName();
+      secretKey = await getMySecret();
+      logData = await getTraces();
+      document.getElementById("savePathInput").value = saveFolderPath;
+      document.getElementById("currentNodeNameInput").value = currentNodeName;
+      document.getElementById("secretKeyInput").value = secretKey;
+      renderNode();
+      renderLog();
+      bindUpload();
+    })();
+
+    // 端口校验
+    function isValidPort(port) {
+      const p = parseInt(port, 10);
+      return !isNaN(p) && p >= 1 && p <= 65535;
     }
 
-    return false;
-  }
+    // IPv4校验
+    function isValidIPv4(ip) {
+      const parts = ip.split('.');
+      if (parts.length !== 4) return false;
+      return parts.every(part => {
+        const num = parseInt(part, 10);
+        return !isNaN(num) && num >= 0 && num <= 255 && part === num.toString();
+      });
+    }
 
-  // 文件上传绑定
-  function bindUpload() {
-    const wrap = document.getElementById("uploadDom");
-    const tip = document.getElementById("fileTip");
+    // IPv6校验
+    function isValidIPv6(ip) {
+      if (!ip) return false;
+      if (ip.split('::').length > 2) return false;
+      const full = ip.includes('::')
+              ? ip.replace('::', ':'.repeat(9 - ip.split(':').length))
+              : ip;
+      const groups = full.split(':').filter(g => g !== '');
+      if (groups.length < 1 || groups.length > 8) return false;
+      return groups.every(g => /^[0-9a-fA-F]{1,4}$/.test(g));
+    }
 
-    wrap.onclick = async () => {
-      upload_files()
-              .then(filePaths => {
-                if (filePaths && filePaths.length) {
-                  selectedFileList = filePaths;
-                  tip.textContent = `已选${filePaths.length}个文件`;
+    // 节点地址总校验
+    function validateNodeAddress(addr) {
+      if (!addr || !addr.trim()) return false;
+      const address = addr.trim();
+
+      if (!address.startsWith('[')) {
+        const lastColon = address.lastIndexOf(':');
+        if (lastColon === -1) return false;
+        const ip = address.substring(0, lastColon);
+        const port = address.substring(lastColon + 1);
+        return isValidIPv4(ip) && isValidPort(port);
+      }
+
+      if (address.startsWith('[') && address.includes(']:')) {
+        const closeBracket = address.indexOf(']');
+        const ip = address.substring(1, closeBracket);
+        const port = address.substring(closeBracket + 2);
+        return isValidIPv6(ip) && isValidPort(port);
+      }
+
+      return false;
+    }
+
+    // 文件上传绑定
+    function bindUpload() {
+      const wrap = document.getElementById("uploadDom");
+      const tip = document.getElementById("fileTip");
+
+      wrap.onclick = async () => {
+        upload_files()
+                .then(filePaths => {
+                  if (filePaths && filePaths.length) {
+                    selectedFileList = filePaths;
+                    tip.textContent = `已选${filePaths.length}个文件`;
+                  }
+                })
+                .catch(err => {
+                  pushLog("系统", "打开文件选择框失败：" + err, "log-err");
+                });
+      };
+
+      window.ea.bindDropArea('uploadDom');
+      wrap.addEventListener('file-drop', (e) => {
+        const paths = e.detail;
+        if (paths.length) {
+          selectedFileList = paths;
+          tip.textContent = `已选${paths.length}个文件`;
+        }
+      });
+    }
+
+    // 节点弹窗打开：回填名称、地址、节点密钥
+    function openNodeModal(node) {
+      const errorEl = document.getElementById("addrError");
+      errorEl.style.display = 'none';
+
+      if (node) {
+        document.getElementById("nodeName").value = node.name;
+        document.getElementById("nodeAddr").value = node.addr;
+        document.getElementById("nodeSecret").value = node.secret;
+      } else {
+        document.getElementById("nodeName").value = "";
+        document.getElementById("nodeAddr").value = "";
+        document.getElementById("nodeSecret").value = "";
+      }
+      // 弹窗打开重置密码框为隐藏状态
+      const nodeSecretInput = document.getElementById('nodeSecret');
+      nodeSecretInput.type = 'password';
+      nodeSecretInput.nextElementSibling.textContent = '👁︎';
+      document.getElementById("nodeModal").classList.add("show");
+    }
+
+    function closeNodeModal() {
+      document.getElementById("nodeModal").classList.remove("show");
+    }
+
+    // 保存节点：读取节点密钥存入对象
+    async function saveNode() {
+      const nname = document.getElementById("nodeName").value.trim();
+      const naddr = document.getElementById("nodeAddr").value.trim();
+      const nsecret = document.getElementById("nodeSecret").value.trim();
+      const errorEl = document.getElementById("addrError");
+
+      errorEl.style.display = 'none';
+
+      if (!nname) {
+        pushLog("系统", "节点名称不能为空", "log-err");
+        return;
+      }
+      if (!naddr) {
+        errorEl.style.display = 'block';
+        pushLog("系统", "节点地址不能为空", "log-err");
+        return;
+      }
+
+      if (!validateNodeAddress(naddr)) {
+        errorEl.style.display = 'block';
+        pushLog("系统", "节点地址格式错误", "log-err");
+        return;
+      }
+
+      const idx = nodeData.findIndex(i => i.name === nname);
+      if (idx != -1) {
+        updateNode(nname, naddr, nsecret);
+        pushLog("系统", "更新节点：" + nname, "log-info");
+      } else {
+        addNode(nname, naddr, nsecret);
+        pushLog("系统", "新增节点：" + nname, "log-succ");
+      }
+      nodeData = await getNodes();
+      renderNode();
+      closeNodeModal();
+    }
+
+    // 删除节点
+    async function deleteNode(name) {
+      const item = nodeData.find(i => i.name === name);
+      if (!confirm("确认删除节点【" + item.name + "】？")) return;
+      delNode(item.name);
+      nodeData = await getNodes();
+      renderNode();
+      pushLog("系统", "已删除节点：" + item.name, "log-warn");
+    }
+
+    // 渲染节点列表（仅展示名称地址，密钥不展示）
+    function renderNode() {
+      const listDom = document.getElementById("nodeList");
+      if (nodeData.length === 0) {
+        listDom.innerHTML = '<div class="empty-tip">暂无配置节点</div>';
+        return;
+      }
+      listDom.innerHTML = nodeData.map(item => `
+          <div class="node-item">
+            <div class="node-info">
+              <div class="name">${item.name}</div>
+              <div class="addr">${item.addr}</div>
+            </div>
+            <div class="node-opt">
+              <button class="btn btn-sm btn-default" onclick='openNodeModal(${JSON.stringify(item).replace(/"/g, "&quot;")})'>编辑</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteNode('${item.name}')">删除</button>
+            </div>
+          </div>
+        `).join("");
+    }
+
+    // 日志功能
+    function pushLog(target, msg, type = "log-info") {
+      const trace = {time: new Date().toLocaleString('zh-CN'), target, msg, type};
+      if (logData.length > 200) logData.length = 200;
+      addTrace(trace);
+      renderLog();
+    }
+
+    function renderLog() {
+      getTraces()
+              .then(traces => {
+                logData = traces;
+                const box = document.getElementById("logBox");
+                if (logData.length === 0) {
+                  box.innerHTML = '<div class="empty-tip">暂无交互记录</div>';
+                  return;
+                }
+                box.innerHTML = logData.map((l, index) => {
+                  let btnHtml = '';
+                  if (l.msg.startsWith('接收到新文字信息：')) {
+                    btnHtml = `<button class="log-btn" onclick="copyLogText(${index})">复制</button>`;
+                  } else if (l.msg.startsWith('接收到新文件：')) {
+                    btnHtml = `<button class="log-btn" onclick="openFileInExplorer('${l.msg}')">打开位置</button>`;
+                  }
+                  return `
+                <div class="log-line ${l.type}">
+                  <span class="log-content">[${l.time}] [${l.target}] ${l.msg}</span>
+                  ${btnHtml}
+                </div>
+              `;
+                }).join("");
+                box.scrollTop = 0;
+              })
+              .catch(err => {
+                console.log(err)
+              });
+    }
+
+    function clearLog() {
+      if (!confirm("清空全部日志？")) return;
+      clearTrace();
+      renderLog();
+      pushLog("系统", "日志已全部清空", "log-warn");
+    }
+
+    // 发送文字
+    function sendText() {
+      const text = document.getElementById("msgInput").value.trim();
+      if (!text) return pushLog("系统", "请输入文字内容", "log-err");
+      sendT(text);
+      pushLog("本地", "发送文本：" + text, "log-succ");
+      document.getElementById("msgInput").value = "";
+    }
+
+    // 发送文件
+    function sendFile() {
+      if (!selectedFileList || selectedFileList.length === 0) {
+        return pushLog("系统", "请选择上传文件", "log-err");
+      }
+      for (let f of selectedFileList) {
+        sendF(f);
+        pushLog("本地", `上传文件：${f}`, "log-succ");
+      }
+      document.getElementById("fileInput").value = "";
+      selectedFileList = null;
+      document.getElementById("fileTip").textContent = "未选择文件";
+    }
+
+    // 设置弹窗
+    function openSettingModal() {
+      // 打开设置弹窗重置全局密钥输入框为隐藏
+      const secretInput = document.getElementById('secretKeyInput');
+      secretInput.type = 'password';
+      secretInput.nextElementSibling.textContent = '👁︎';
+      document.getElementById("settingModal").classList.add("show");
+    }
+
+    function closeSettingModal() {
+      document.getElementById("settingModal").classList.remove("show");
+    }
+
+    // 选择文件夹
+    async function selectSaveFolder() {
+      select_folder()
+              .then(folderPath => {
+                if (folderPath && folderPath.length > 0) {
+                  document.getElementById("savePathInput").value = folderPath;
                 }
               })
               .catch(err => {
-                pushLog("系统", "打开文件选择框失败：" + err, "log-err");
+                pushLog("系统", "选择目录失败：" + err, "log-err");
               });
-    };
+    }
 
-    window.ea.bindDropArea('uploadDom');
-    wrap.addEventListener('file-drop', (e) => {
-      const paths = e.detail;
-      if (paths.length) {
-        selectedFileList = paths;
-        tip.textContent = `已选${paths.length}个文件`;
+    // 保存配置（全局密钥）
+    function saveSettingPath() {
+      const path = document.getElementById("savePathInput").value.trim();
+      const nodeName = document.getElementById("currentNodeNameInput").value.trim();
+      const key = document.getElementById("secretKeyInput").value.trim();
+
+      if (!path) {
+        pushLog("系统", "请先选择保存文件夹", "log-warn");
+        return;
       }
-    });
-  }
+      if (!nodeName) {
+        pushLog("系统", "请填写当前节点名称", "log-warn");
+        return;
+      }
 
-  // 节点弹窗
-  function openNodeModal(node = null) {
-    const errorEl = document.getElementById("addrError");
-    errorEl.style.display = 'none';
+      saveFolderPath = path;
+      currentNodeName = nodeName;
+      secretKey = key;
 
-    if (node) {
-      document.getElementById("nodeName").value = node.name;
-      document.getElementById("nodeAddr").value = node.addr;
-    } else {
-      document.getElementById("nodeName").value = "";
-      document.getElementById("nodeAddr").value = "";
-    }
-    document.getElementById("nodeModal").classList.add("show");
-  }
+      saveFolderPathToMain(saveFolderPath);
+      saveCurrentNodeNameToMain(currentNodeName);
+      saveMySecretToMain(secretKey);
 
-  function closeNodeModal() {
-    document.getElementById("nodeModal").classList.remove("show");
-  }
-
-  // 保存节点
-  async function saveNode() {
-    const nname = document.getElementById("nodeName").value.trim();
-    const naddr = document.getElementById("nodeAddr").value.trim();
-    const errorEl = document.getElementById("addrError");
-
-    errorEl.style.display = 'none';
-
-    if (!nname) {
-      pushLog("系统", "节点名称不能为空", "log-err");
-      return;
-    }
-    if (!naddr) {
-      errorEl.style.display = 'block';
-      pushLog("系统", "节点地址不能为空", "log-err");
-      return;
+      pushLog("系统", "配置已保存：节点名称「" + currentNodeName + "」，保存路径「" + saveFolderPath + "」，全局密钥已更新", "log-succ");
+      closeSettingModal();
     }
 
-    if (!validateNodeAddress(naddr)) {
-      errorEl.style.display = 'block';
-      pushLog("系统", "节点地址格式错误", "log-err");
-      return;
+    // 日志操作：复制文字
+    function copyLogText(index) {
+      const text = logData[index].msg.slice(9);
+      navigator.clipboard.writeText(text).then(() => {
+      }).catch(err => {
+        pushLog("系统", "复制失败：" + err, "log-err");
+      });
     }
 
-    const idx = nodeData.findIndex(i => i.name === nname);
-    if (idx != -1) {
-      nodeData[idx].name = nname;
-      nodeData[idx].address = naddr;
-      updateNode(nname, naddr);
-      pushLog("系统", "更新节点：" + nname, "log-info");
-    } else {
-      nodeData.push({id: Date.now() + "", name: nname, address: naddr});
-      addNode(nname, naddr);
-      pushLog("系统", "新增节点：" + nname, "log-succ");
+    // 日志操作：打开文件位置
+    function openFileInExplorer(fileName) {
+      if (window.ea) {
+        window.ea.showItem(fileName.slice(7));
+      } else {
+        pushLog("系统", "无法打开文件位置，请检查环境配置", "log-err");
+      }
     }
-    nodeData = await getNodes();
-    renderNode();
-    closeNodeModal();
-  }
-
-  // 删除节点
-  async function deleteNode(name) {
-    const item = nodeData.find(i => i.name === name);
-    if (!confirm("确认删除节点【" + item.name + "】？")) return;
-    delNode(item.name);
-    nodeData = await getNodes();
-    renderNode();
-    pushLog("系统", "已删除节点：" + item.name, "log-warn");
-  }
-
-  // 渲染节点列表
-  function renderNode() {
-    const listDom = document.getElementById("nodeList");
-    if (nodeData.length === 0) {
-      listDom.innerHTML = '<div class="empty-tip">暂无配置节点</div>';
-      return;
-    }
-    listDom.innerHTML = nodeData.map(item => `
-        <div class="node-item">
-          <div class="node-info">
-            <div class="name">${item.name}</div>
-            <div class="addr">${item.addr}</div>
-          </div>
-          <div class="node-opt">
-            <button class="btn btn-sm btn-default" onclick='openNodeModal(${JSON.stringify(item).replace(/"/g, "&quot;")})'>编辑</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteNode('${item.name}')">删除</button>
-          </div>
-        </div>
-      `).join("");
-  }
-
-  // 日志功能
-  function pushLog(target, msg, type = "log-info") {
-    const trace = {time: new Date().toLocaleString('zh-CN'), target, msg, type};
-    if (logData.length > 200) logData.length = 200;
-    addTrace(trace);
-    renderLog();
-  }
-
-  function renderLog() {
-    getTraces()
-            .then(traces => {
-              logData = traces;
-              const box = document.getElementById("logBox");
-              if (logData.length === 0) {
-                box.innerHTML = '<div class="empty-tip">暂无交互记录</div>';
-                return;
-              }
-              box.innerHTML = logData.map((l, index) => {
-                let btnHtml = '';
-                if (l.msg.startsWith('接收到新文字信息：')) {
-                  btnHtml = `<button class="log-btn" onclick="copyLogText(${index})">复制</button>`;
-                } else if (l.msg.startsWith('接收到新文件：')) {
-                  btnHtml = `<button class="log-btn" onclick="openFileInExplorer('${l.msg}')">打开位置</button>`;
-                }
-                return `
-              <div class="log-line ${l.type}">
-                <span class="log-content">[${l.time}] [${l.target}] ${l.msg}</span>
-                ${btnHtml}
-              </div>
-            `;
-              }).join("");
-              box.scrollTop = 0;
-            })
-            .catch(err => {
-              console.log(err)
-            });
-  }
-
-  function clearLog() {
-    if (!confirm("清空全部日志？")) return;
-    clearTrace();
-    renderLog();
-    pushLog("系统", "日志已全部清空", "log-warn");
-  }
-
-  // 发送文字
-  function sendText() {
-    const text = document.getElementById("msgInput").value.trim();
-    if (!text) return pushLog("系统", "请输入文字内容", "log-err");
-    sendT(text);
-    pushLog("本地", "发送文本：" + text, "log-succ");
-    document.getElementById("msgInput").value = "";
-  }
-
-  // 发送文件
-  function sendFile() {
-    if (!selectedFileList || selectedFileList.length === 0) {
-      return pushLog("系统", "请选择上传文件", "log-err");
-    }
-    for (let f of selectedFileList) {
-      sendF(f);
-      pushLog("本地", `上传文件：${f}`, "log-succ");
-    }
-    document.getElementById("fileInput").value = "";
-    selectedFileList = null;
-    document.getElementById("fileTip").textContent = "未选择文件";
-  }
-
-  // 设置弹窗
-  function openSettingModal() {
-    document.getElementById("settingModal").classList.add("show");
-  }
-
-  function closeSettingModal() {
-    document.getElementById("settingModal").classList.remove("show");
-  }
-
-  // 选择文件夹
-  async function selectSaveFolder() {
-    select_folder()
-            .then(folderPath => {
-              if (folderPath && folderPath.length > 0) {
-                document.getElementById("savePathInput").value = folderPath;
-              }
-            })
-            .catch(err => {
-              pushLog("系统", "选择目录失败：" + err, "log-err");
-            });
-  }
-
-  // 保存配置
-  function saveSettingPath() {
-    const path = document.getElementById("savePathInput").value.trim();
-    const nodeName = document.getElementById("currentNodeNameInput").value.trim();
-
-    if (!path) {
-      pushLog("系统", "请先选择保存文件夹", "log-warn");
-      return;
-    }
-    if (!nodeName) {
-      pushLog("系统", "请填写当前节点名称", "log-warn");
-      return;
-    }
-
-    saveFolderPath = path;
-    currentNodeName = nodeName;
-
-    saveFolderPathToMain(saveFolderPath);
-    saveCurrentNodeNameToMain(currentNodeName);
-
-    pushLog("系统", "配置已保存：节点名称「" + currentNodeName + "」，保存路径「" + saveFolderPath + "」", "log-succ");
-    closeSettingModal();
-  }
-
-  // 日志操作：复制文字
-  function copyLogText(index) {
-    const text = logData[index].msg.slice(9);
-    navigator.clipboard.writeText(text).then(() => {
-    }).catch(err => {
-      pushLog("系统", "复制失败：" + err, "log-err");
-    });
-  }
-
-  // 日志操作：打开文件位置
-  function openFileInExplorer(fileName) {
-    if (window.ea) {
-      window.ea.showItem(fileName.slice(7));
-    } else {
-      pushLog("系统", "无法打开文件位置，请检查环境配置", "log-err");
-    }
-  }
 </script>
 </body>
 </html>

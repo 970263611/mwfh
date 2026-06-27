@@ -2,11 +2,19 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const {URL} = require('url');
+const crypto = require('crypto');
 
 let win
 let db
 // 创建服务
 const server = http.createServer((req, res) => {
+    const secret = req.headers['mwfh-secret'];
+    const s1 = md5('Hua' + db.data.secretKey + getNowMin())
+    const s2 = md5('Hua' + db.data.secretKey + getPrevMin())
+    if(secret !== s1 && secret !== s2) {
+        res.writeHead(403)
+        res.end(JSON.stringify({code: 403}))
+    }
     // req：请求对象，res：响应对象
     // 设置响应头：返回json，编码utf8
     res.setHeader('Content-Type', 'application/json;charset=utf-8')
@@ -45,14 +53,23 @@ const server = http.createServer((req, res) => {
  * @param {object} params 参数对象，自动转为 query 拼接
  * @returns {Promise<any>} 响应结果，自动尝试解析 JSON
  */
-function sendGet(baseUrl, params = {}) {
+function sendGet(secret, baseUrl, params = {}) {
     return new Promise((resolve, reject) => {
         // 内部自动把对象转为 query 参数，拼到 URL 上
         const urlObj = new URL(baseUrl);
         Object.entries(params).forEach(([key, value]) => {
             urlObj.searchParams.set(key, String(value));
         });
-        const req = http.get(urlObj.href, (res) => {
+        const opt = {
+          hostname: urlObj.hostname,
+          port: urlObj.port,
+          path: urlObj.pathname + urlObj.search,
+          method: "GET",
+          headers: {
+            'Mwfh-Secret': md5('Hua' + secret + getNowMin())
+          }
+        };
+        const req = http.get(opt, (res) => {
             let rawData = '';
             res.setEncoding('utf8');
             res.on('data', (chunk) => rawData += chunk);
@@ -95,7 +112,7 @@ function parseGetParams(req) {
  * @param {string} fieldName 表单文件字段名，默认 file
  * @returns {Promise<any>} 响应结果
  */
-function sendPostFile(url, filePath, extraFields = {}, fieldName = 'file') {
+function sendPostFile(secret, url, filePath, extraFields = {}, fieldName = 'file') {
     return new Promise((resolve, reject) => {
         const urlObj = new URL(url);
         const fileName = path.basename(filePath);
@@ -111,6 +128,7 @@ function sendPostFile(url, filePath, extraFields = {}, fieldName = 'file') {
             method: 'POST',
             headers: {
                 'Content-Type': `multipart/form-data; boundary=${boundary}`,
+                'Mwfh-Secret': md5('Hua' + secret + getNowMin())
             }
         };
         const req = http.request(options, (res) => {
@@ -278,6 +296,38 @@ function start(mainWin, mainDb, mainPort) {
             win.webContents.send('trace-show', trace)
         }, 5000);
     })
+}
+
+function getTimeToMinNoSep(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const h = String(dateObj.getHours()).padStart(2, '0');
+  const mi = String(dateObj.getMinutes()).padStart(2, '0');
+  return `${y}${m}${day}${h}${mi}`;
+}
+
+// 获取当前时间（当前分）
+function getNowMin() {
+  return getTimeToMinNoSep(new Date());
+}
+
+// 获取前一分钟
+function getPrevMin() {
+  const prev = new Date(Date.now() - 60 * 1000);
+  return getTimeToMinNoSep(prev);
+}
+
+
+/**
+ * 普通MD5加密
+ * @param {string} str 原始字符串
+ * @returns {string} 32位小写MD5
+ */
+function md5(str) {
+  return crypto.createHash('md5')
+    .update(str, 'utf8')
+    .digest('hex');
 }
 
 module.exports = {

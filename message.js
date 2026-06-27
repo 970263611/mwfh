@@ -21,6 +21,7 @@ ipcMain.on('updateNode', async (event, node) => {
     if (saveNode) {
         saveNode.name = node.name
         saveNode.addr = node.addr
+        saveNode.secret = node.secret
     } else {
         db.data.nodes.push(node)
     }
@@ -36,14 +37,14 @@ ipcMain.on('sendT', (event, text) => {
         if (!addr.startsWith("http://")) {
             addr = "http://" + addr
         }
-        http.sendGet(addr, {
+        http.sendGet(db.data.secret, addr, {
             name: db.data.nodeName,
             data: text
         }).then().catch(err => {
             const trace = {
                 "time": new Date().toLocaleString('zh-CN'),
                 "target": '错误',
-                "msg": err,
+                "msg": '[' + node.addr + '] ' + err.message,
                 "type": "log-err"
             }
             win.webContents.send('trace-show', trace)
@@ -57,14 +58,14 @@ ipcMain.on('sendF', (event, file) => {
             addr = "http://" + addr
         }
         const fileName = path.basename(file)
-        http.sendPostFile(addr, file, {
+        http.sendPostFile(db.data.secret, addr, file, {
             name: db.data.nodeName,
             fileName: fileName
         }, fileName).then().catch(err => {
             const trace = {
                 "time": new Date().toLocaleString('zh-CN'),
                 "target": '错误',
-                "msg": err,
+                "msg": '[' + node.addr + '] ' + err.message,
                 "type": "log-err"
             }
             win.webContents.send('trace-show', trace)
@@ -131,6 +132,14 @@ ipcMain.handle('select-save-folder', async () => {
     }
 })
 
+ipcMain.handle('get-my-secret', async () => {
+    return db.data.secret
+})
+
+ipcMain.on('saveMySecret', async (event, secret) => {
+    db.data.secret = secret
+    await db.write()
+})
 
 function getMac() {
     const interfaces = os.networkInterfaces();
