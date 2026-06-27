@@ -12,7 +12,7 @@ const server = http.createServer((req, res) => {
     const s1 = md5('Hua' + db.data.secret + getNowMin())
     const s2 = md5('Hua' + db.data.secret + getPrevMin())
     const s3 = md5('Hua' + getPrevMin()) // unset
-    if(secret !== s1 && secret !== s2 && secret !== s3) {
+    if(secret !== s1 && secret !== s2 && db.data.secret !== '') {
         res.writeHead(403)
         res.end(JSON.stringify({code: 403}))
         return
@@ -62,8 +62,12 @@ function sendGet(secret, baseUrl, params = {}) {
         Object.entries(params).forEach(([key, value]) => {
             urlObj.searchParams.set(key, String(value));
         });
+        let host = urlObj.hostname
+        if (host.startsWith('[') && host.endsWith(']')) {
+            host = host.slice(1, -1);
+        }
         const opt = {
-          hostname: urlObj.hostname,
+          hostname: host,
           port: urlObj.port,
           path: urlObj.pathname + urlObj.search,
           method: "GET",
