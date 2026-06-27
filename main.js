@@ -48,8 +48,8 @@ app.whenReady().then(() => {
   // }
   createWindow()
   createTray()
-  message.start(win, db)
-  http.start(win, db, appArgs.port)
+  message.start(win, db, appArgs)
+  http.start(win, db, appArgs)
   if (process.platform === 'darwin') {
     const dockIconPath = path.join(__dirname, './logo.png')
     app.dock.setIcon(dockIconPath)

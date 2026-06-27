@@ -278,12 +278,33 @@ function splitBuffer(buffer, separator) {
 }
 
 
-function start(mainWin, mainDb, mainPort) {
+function start(mainWin, mainDb, args) {
+    const mainPort = args.port
     win = mainWin
     db = mainDb
     let port = 5216
     if (mainPort) {
         port = Number(mainPort)
+    }
+    if(server){
+        server.close((err) => {
+          let msg
+          let type
+          if (err) {
+            msg = '关闭失败：' + err.message
+            type = 'log-succ'
+          } else {
+            msg = '传输服务已停止'
+            type = 'log-err'
+          }
+          const trace = {
+              "time": new Date().toLocaleString('zh-CN'),
+              "target": '系统',
+              "msg": msg,
+              "type": type
+          }
+          win.webContents.send('trace-show', trace)
+        });
     }
     server.listen(port, () => {
         const trace = {

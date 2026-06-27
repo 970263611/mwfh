@@ -5,6 +5,7 @@ const http = require('./http')
 
 let win
 let db
+let appArgs
 
 ipcMain.on('addNode', async (event, node) => {
     const saveNode = db.data.nodes.find(n => n.name === node.name)
@@ -139,6 +140,7 @@ ipcMain.handle('get-my-secret', async () => {
 ipcMain.on('saveMySecret', async (event, secret) => {
     db.data.secret = secret
     await db.write()
+    http.start(win, db, appArgs)
 })
 
 function getMac() {
@@ -169,9 +171,10 @@ function getMac() {
     return candidates.length > 0 ? candidates[0].mac : '';
 }
 
-function start(mainWin, mainDb) {
+function start(mainWin, mainDb, mainAppArgs) {
     win = mainWin
     db = mainDb
+    appArgs = mainAppArgs
 }
 
 module.exports = {
