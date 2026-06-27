@@ -9,11 +9,12 @@ let db
 // 创建服务
 const server = http.createServer((req, res) => {
     const secret = req.headers['mwfh-secret'];
-    const s1 = md5('Hua' + db.data.secretKey + getNowMin())
-    const s2 = md5('Hua' + db.data.secretKey + getPrevMin())
+    const s1 = md5('Hua' + db.data.secret + getNowMin())
+    const s2 = md5('Hua' + db.data.secret + getPrevMin())
     if(secret !== s1 && secret !== s2) {
         res.writeHead(403)
         res.end(JSON.stringify({code: 403}))
+        return
     }
     // req：请求对象，res：响应对象
     // 设置响应头：返回json，编码utf8

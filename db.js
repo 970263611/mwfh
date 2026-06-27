@@ -13,6 +13,7 @@ function start(appArgs) {
         traces: [],
         nodes: [],
         saveFolderPath: '',
+        secret: ''
     }
 
     const db = new Low(new JSONFile(dbDir), defaultData)

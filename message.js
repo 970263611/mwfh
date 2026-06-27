@@ -38,7 +38,7 @@ ipcMain.on('sendT', (event, text) => {
         if (!addr.startsWith("http://")) {
             addr = "http://" + addr
         }
-        http.sendGet(db.data.secret, addr, {
+        http.sendGet(node.secret, addr, {
             name: db.data.nodeName,
             data: text
         }).then(() => {
@@ -67,7 +67,7 @@ ipcMain.on('sendF', (event, file) => {
             addr = "http://" + addr
         }
         const fileName = path.basename(file)
-        http.sendPostFile(db.data.secret, addr, file, {
+        http.sendPostFile(node.secret, addr, file, {
             name: db.data.nodeName,
             fileName: fileName
         }, fileName).then(() => {
