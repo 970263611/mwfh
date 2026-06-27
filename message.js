@@ -150,6 +150,10 @@ ipcMain.handle('select-save-folder', async () => {
 })
 
 ipcMain.handle('get-my-secret', async () => {
+    if (!db.data.secret) {
+        db.data.secret = ''
+        await db.write()
+    }
     return db.data.secret
 })
 

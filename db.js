@@ -16,6 +16,8 @@ function start(appArgs) {
         secret: ''
     }
 
+    console.log(defaultData)
+
     const db = new Low(new JSONFile(dbDir), defaultData)
     ;(async () => {
         await db.read()

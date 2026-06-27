@@ -11,7 +11,8 @@ const server = http.createServer((req, res) => {
     const secret = req.headers['mwfh-secret'];
     const s1 = md5('Hua' + db.data.secret + getNowMin())
     const s2 = md5('Hua' + db.data.secret + getPrevMin())
-    if(secret !== s1 && secret !== s2) {
+    const s3 = md5('Hua' + getPrevMin()) // unset
+    if(secret !== s1 && secret !== s2 && secret !== s3) {
         res.writeHead(403)
         res.end(JSON.stringify({code: 403}))
         return
