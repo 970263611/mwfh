@@ -81,6 +81,9 @@ function sendGet(secret, baseUrl, params = {}) {
                     resolve(rawData);
                 }
             });
+            if(res.statusCode !== 200){
+              reject(new Error('文字发送错误：' + res.statusCode));
+            }
         });
 
         req.on('error', reject);
@@ -143,6 +146,9 @@ function sendPostFile(secret, url, filePath, extraFields = {}, fieldName = 'file
                     resolve(rawData);
                 }
             });
+            if(res.statusCode !== 200){
+              reject(new Error('文件传输错误：' + res.statusCode));
+            }
         });
 
         req.on('error', reject);
