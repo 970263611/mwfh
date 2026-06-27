@@ -41,7 +41,15 @@ ipcMain.on('sendT', (event, text) => {
         http.sendGet(db.data.secret, addr, {
             name: db.data.nodeName,
             data: text
-        }).then().catch(err => {
+        }).then(() => {
+            const trace = {
+                "time": new Date().toLocaleString('zh-CN'),
+                "target": '成功',
+                "msg": '[' + node.addr + '] ' + '文字发送成功',
+                "type": "log-succ"
+            }
+            win.webContents.send('trace-show', trace)
+        }).catch(err => {
             const trace = {
                 "time": new Date().toLocaleString('zh-CN'),
                 "target": '错误',
@@ -62,7 +70,15 @@ ipcMain.on('sendF', (event, file) => {
         http.sendPostFile(db.data.secret, addr, file, {
             name: db.data.nodeName,
             fileName: fileName
-        }, fileName).then().catch(err => {
+        }, fileName).then(() => {
+            const trace = {
+                "time": new Date().toLocaleString('zh-CN'),
+                "target": '成功',
+                "msg": '[' + node.addr + '] ' + '文件发送成功 [' + fileName + ']',
+                "type": "log-succ"
+            }
+            win.webContents.send('trace-show', trace)
+        }).catch(err => {
             const trace = {
                 "time": new Date().toLocaleString('zh-CN'),
                 "target": '错误',
