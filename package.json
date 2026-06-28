@@ -26,6 +26,7 @@
     "electron-builder": "^26.15.3"
   },
   "dependencies": {
+    "@roamhq/wrtc": "^0.10.0",
     "electron-squirrel-startup": "^1.0.1",
     "lowdb": "^7.0.1"
   },
@@ -33,7 +34,10 @@
     "appId": "world.dahua.mwfh",
     "productName": "mwfh",
     "win": {
-      "target": ["nsis", "zip"],
+      "target": [
+        "nsis",
+        "zip"
+      ],
       "icon": "./logo.png"
     },
     "mac": {

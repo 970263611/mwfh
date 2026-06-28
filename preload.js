@@ -20,11 +20,21 @@ contextBridge.exposeInMainWorld('ea', {
 
     showItem: (fileName) => ipcRenderer.send('showItem', fileName),
 
-    onTraceShow: (callback) => ipcRenderer.on('trace-show', (_event, trace) => callback(trace)),
+    onTraceShow: (callback) => ipcRenderer.on('trace-show', (event, trace) => callback(trace)),
+
+    rtcRecv: (callback) => ipcRenderer.on('rtc-recv', (event, payload) => callback(payload)),
+
+    rtcCallback: (callback) => ipcRenderer.on('rtc-callback', (event, payload) => callback(payload)),
 
     getMySecret: () => ipcRenderer.invoke('get-my-secret'),
 
-    saveMySecret: (secretKey) => ipcRenderer.send('saveMySecret',secretKey),
+    saveMySecret: (secretKey) => ipcRenderer.send('saveMySecret', secretKey),
+
+    getPublicIPv6: () => ipcRenderer.invoke('get-public-ipv6'),
+
+    viewOtherNode: (node, data) => ipcRenderer.send('viewOtherNode', node, data),
+
+    callbackViewNode: (node, data) => ipcRenderer.send('callbackViewNode', node, data),
 
     // 绑定拖拽区域，拖拽完成后返回绝对路径数组
     bindDropArea: (elementId) => {

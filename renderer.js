@@ -73,10 +73,36 @@ function saveCurrentNodeNameToMain(nodeName) {
     window.ea.saveNodeName(nodeName)
 }
 
-async function getMySecret(){
+async function getMySecret() {
     return window.ea.getMySecret()
 }
 
-async function saveMySecretToMain(secret){
+async function saveMySecretToMain(secret) {
     window.ea.saveMySecret(secret)
 }
+
+async function getPublicIPv6() {
+    return window.ea.getPublicIPv6()
+}
+
+async function viewOtherNodeFromMain(node) {
+    navigator.mediaDevices.getDisplayMedia({
+        audio: true,
+        video: true
+    }).then(async stream => {
+        const video = document.querySelector('video')
+        video.srcObject = stream
+        video.onloadedmetadata = (e) => video.play()
+        await startRtc(stream, node)
+    }).catch(err => {
+        pushLog('错误', '[' + node.addr + '] ' + err.message, 'log-err')
+    })
+}
+
+window.ea.rtcRecv(async (payload) => {
+    await handleRemoteOffer(payload.name, payload.addr, payload.secret, payload.data)
+})
+
+window.ea.rtcCallback(async (payload) => {
+    await handleRemoteAnswer(payload.data)
+})

@@ -33,4 +33,4 @@ out/**
 .DS_Store
 db.json
 dist/**
-package.json-lock
+package-lock.json

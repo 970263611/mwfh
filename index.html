@@ -6,557 +6,599 @@
     <title>花之交互工具</title>
     <style>
         * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
         :root {
-          /* macOS 原生系统色 */
-          --apple-blue: #007AFF;
-          --apple-blue-hover: #0066DD;
-          --apple-green: #34C759;
-          --apple-red: #FF3B30;
-          --apple-red-hover: #E6352B;
-          --apple-orange: #FF9500;
-          --apple-gray1: #1D1D1F;
-          --apple-gray2: #6E6E73;
-          --apple-gray3: #8E8E93;
-          --apple-gray4: #D2D2D7;
-          --apple-gray5: #E5E5EA;
-          --apple-bg-window: #F5F5F7;
-          --apple-bg-card: #FFFFFF;
-          --apple-bg-hover: #E8E8ED;
-          --apple-dark-bg: #1C1C1E;
-          /* 圆角尺寸 */
-          --radius-xs: 6px;
-          --radius-sm: 8px;
-          --radius-md: 12px;
-          --radius-lg: 16px;
-          --radius-full: 999px;
-          /* 阴影 */
-          --shadow-light: 0 1px 4px rgba(0,0,0,0.04);
-          --shadow-card: 0 2px 10px rgba(0,0,0,0.06);
-          --shadow-float: 0 8px 30px rgba(0,0,0,0.12);
+            /* macOS 原生系统色 */
+            --apple-blue: #007AFF;
+            --apple-blue-hover: #0066DD;
+            --apple-green: #34C759;
+            --apple-red: #FF3B30;
+            --apple-red-hover: #E6352B;
+            --apple-orange: #FF9500;
+            --apple-gray1: #1D1D1F;
+            --apple-gray2: #6E6E73;
+            --apple-gray3: #8E8E93;
+            --apple-gray4: #D2D2D7;
+            --apple-gray5: #E5E5EA;
+            --apple-bg-window: #F5F5F7;
+            --apple-bg-card: #FFFFFF;
+            --apple-bg-hover: #E8E8ED;
+            --apple-dark-bg: #1C1C1E;
+            /* 圆角尺寸 */
+            --radius-xs: 6px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 999px;
+            /* 阴影 */
+            --shadow-light: 0 1px 4px rgba(0,0,0,0.04);
+            --shadow-card: 0 2px 10px rgba(0,0,0,0.06);
+            --shadow-float: 0 8px 30px rgba(0,0,0,0.12);
         }
 
         html, body {
-          height: 100vh;
-          min-width: 320px;
-          overflow: hidden;
-          background: var(--apple-bg-window);
-          color: var(--apple-gray1);
+            height: 100vh;
+            min-width: 320px;
+            overflow: hidden;
+            background: var(--apple-bg-window);
+            color: var(--apple-gray1);
         }
 
         .wrapper {
-          width: 100%;
-          height: 100%;
-          padding: 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .section {
-          display: flex;
-          gap: 16px;
-          width: 100%;
+            display: flex;
+            gap: 16px;
+            width: 100%;
         }
 
         .top-section {
-          flex: 0 0 38%;
+            flex: 0 0 38%;
         }
 
         .top-section .card {
-          flex: 1;
+            flex: 1;
         }
 
         .bottom-section {
-          flex: 1;
-          min-height: 0;
+            flex: 1;
+            min-height: 0;
         }
 
         .bottom-section .log-card {
-          flex: 8;
+            flex: 8;
         }
 
         .bottom-section .node-card {
-          flex: 2;
-          min-width: 260px;
+            flex: 2;
+            min-width: 260px;
         }
 
         .card {
-          background: var(--apple-bg-card);
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-light);
-          border: 1px solid var(--apple-gray5);
-          padding: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          overflow: hidden;
+            background: var(--apple-bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--apple-gray5);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow: hidden;
         }
 
         .card-title {
-          font-size: 17px;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: var(--apple-gray1);
+            font-size: 17px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--apple-gray1);
         }
 
         .card-title::before {
-          content: "";
-          width: 4px;
-          height: 18px;
-          background: var(--apple-blue);
-          border-radius: var(--radius-full);
+            content: "";
+            width: 4px;
+            height: 18px;
+            background: var(--apple-blue);
+            border-radius: var(--radius-full);
         }
 
         .node-list {
-          flex: 1;
-          overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .node-item {
-          padding: 12px 14px;
-          border: 1px solid var(--apple-gray5);
-          border-radius: var(--radius-md);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: var(--apple-bg-window);
-          gap: 10px;
-          transition: background 0.2s ease;
+            padding: 12px 14px;
+            border: 1px solid var(--apple-gray5);
+            border-radius: var(--radius-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--apple-bg-window);
+            gap: 10px;
+            transition: background 0.2s ease;
+            position: relative;
         }
         .node-item:hover {
-          background: var(--apple-bg-hover);
+            background: var(--apple-bg-hover);
         }
 
         .node-info {
-          flex: 1;
-          min-width: 0;
-          overflow: hidden;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .node-info .name {
-          font-weight: 500;
-          font-size: 15px;
-          color: var(--apple-gray1);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+            font-weight: 500;
+            font-size: 15px;
+            color: var(--apple-gray1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .node-info .addr {
-          font-size: 12px;
-          color: var(--apple-gray3);
-          margin-top: 3px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+            font-size: 12px;
+            color: var(--apple-gray3);
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .node-opt {
-          display: flex;
-          gap: 8px;
-          flex-shrink: 0;
+        /* 节点三点菜单样式 新增 */
+        .node-menu-trigger {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-full);
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            color: var(--apple-gray2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .node-menu-trigger:hover {
+            background: var(--apple-gray5);
+        }
+        .node-dropdown-menu {
+            position: absolute;
+            right: 8px;
+            top: calc(100% + 4px);
+            background: #fff;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-float);
+            border: 1px solid var(--apple-gray5);
+            min-width: 110px;
+            z-index: 10;
+            overflow: hidden;
+            display: none;
+        }
+        .node-dropdown-menu.show {
+            display: block;
+        }
+        .menu-item {
+            padding: 8px 14px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .menu-item:hover {
+            background: var(--apple-bg-hover);
+        }
+        .menu-item.danger {
+            color: var(--apple-red);
         }
 
         .form-item {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .form-label {
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--apple-gray2);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--apple-gray2);
         }
 
         .form-row {
-          display: flex;
-          gap: 10px;
+            display: flex;
+            gap: 10px;
         }
 
         .form-row input {
-          flex: 1;
+            flex: 1;
         }
 
         .input-pwd-wrap {
-          position: relative;
-          width: 100%;
+            position: relative;
+            width: 100%;
         }
         .input-pwd-wrap input {
-          padding-right: 40px;
+            padding-right: 40px;
         }
         .pwd-eye-btn {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          background: transparent;
-          border: none;
-          font-size: 17px;
-          cursor: pointer;
-          color: var(--apple-gray3);
-          width: 26px;
-          height: 26px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: var(--radius-full);
-          transition: background 0.2s;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            font-size: 17px;
+            cursor: pointer;
+            color: var(--apple-gray3);
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-full);
+            transition: background 0.2s;
         }
         .pwd-eye-btn:hover {
-          background: var(--apple-gray5);
+            background: var(--apple-gray5);
         }
 
         input, textarea {
-          width: 100%;
-          padding: 10px 14px;
-          border: 1px solid var(--apple-gray4);
-          border-radius: var(--radius-sm);
-          font-size: 15px;
-          outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s;
-          color: var(--apple-gray1);
-          font-family: inherit;
-          background: #fff;
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--apple-gray4);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            color: var(--apple-gray1);
+            font-family: inherit;
+            background: #fff;
         }
 
         input:focus, textarea:focus {
-          border-color: var(--apple-blue);
-          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
         }
 
         textarea {
-          flex: 1;
-          resize: none;
-          min-height: 70px;
-          line-height: 1.45;
+            flex: 1;
+            resize: none;
+            min-height: 70px;
+            line-height: 1.45;
         }
 
         .form-error {
-          color: var(--apple-red);
-          font-size: 12px;
-          line-height: 1.4;
-          display: none;
+            color: var(--apple-red);
+            font-size: 12px;
+            line-height: 1.4;
+            display: none;
         }
 
         .upload-area {
-          flex: 1;
-          border: 2px dashed var(--apple-gray4);
-          border-radius: var(--radius-md);
-          padding: 24px 12px;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          background: rgba(0,122,255,0.02);
+            flex: 1;
+            border: 2px dashed var(--apple-gray4);
+            border-radius: var(--radius-md);
+            padding: 24px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(0,122,255,0.02);
         }
 
         .upload-area:hover {
-          border-color: var(--apple-blue);
-          background: rgba(0, 122, 255, 0.06);
+            border-color: var(--apple-blue);
+            background: rgba(0, 122, 255, 0.06);
         }
 
         .upload-area input {
-          display: none;
+            display: none;
         }
 
         .upload-area div:first-of-type {
-          font-size: 32px;
-          opacity: 0.7;
+            font-size: 32px;
+            opacity: 0.7;
         }
 
         .upload-tip {
-          font-size: 13px;
-          color: var(--apple-gray3);
+            font-size: 13px;
+            color: var(--apple-gray3);
         }
 
         .btn {
-          height: 36px;
-          padding: 0 18px;
-          border: 1px solid var(--apple-gray4);
-          border-radius: var(--radius-sm);
-          font-size: 15px;
-          font-weight: 500;
-          cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          transition: all 0.2s ease;
-          background: #fff;
-          color: var(--apple-gray1);
-          white-space: nowrap;
+            height: 36px;
+            padding: 0 18px;
+            border: 1px solid var(--apple-gray4);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            background: #fff;
+            color: var(--apple-gray1);
+            white-space: nowrap;
         }
 
         .btn-sm {
-          height: 28px;
-          padding: 0 12px;
-          font-size: 13px;
+            height: 28px;
+            padding: 0 12px;
+            font-size: 13px;
         }
 
         .btn-primary {
-          background: var(--apple-blue);
-          color: #fff;
-          border-color: transparent;
+            background: var(--apple-blue);
+            color: #fff;
+            border-color: transparent;
         }
 
         .btn-primary:hover {
-          background: var(--apple-blue-hover);
+            background: var(--apple-blue-hover);
         }
 
         .btn-default:hover {
-          background: var(--apple-bg-hover);
+            background: var(--apple-bg-hover);
         }
 
         .btn-danger {
-          background: var(--apple-red);
-          color: #fff;
-          border-color: transparent;
+            background: var(--apple-red);
+            color: #fff;
+            border-color: transparent;
         }
 
         .btn-danger:hover {
-          background: var(--apple-red-hover);
+            background: var(--apple-red-hover);
         }
 
         .log-box {
-          width: 100%;
-          height: 100%;
-          background: var(--apple-dark-bg);
-          border-radius: var(--radius-md);
-          padding: 14px;
-          overflow-y: auto;
-          font-family: Menlo, Monaco, Consolas, monospace;
-          font-size: 12px;
-          color: #EBEBF0;
+            width: 100%;
+            height: 100%;
+            background: var(--apple-dark-bg);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            overflow-y: auto;
+            font-family: Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            color: #EBEBF0;
         }
 
         .log-line {
-          margin-bottom: 8px;
-          line-height: 1.4;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
         }
 
         .log-content {
-          flex: 1;
-          min-width: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .log-btn {
-          flex-shrink: 0;
-          padding: 3px 9px;
-          font-size: 11px;
-          border-radius: var(--radius-xs);
-          background: rgba(255, 255, 255, 0.08);
-          color: #EBEBF0;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-family: inherit;
+            flex-shrink: 0;
+            padding: 3px 9px;
+            font-size: 11px;
+            border-radius: var(--radius-xs);
+            background: rgba(255, 255, 255, 0.08);
+            color: #EBEBF0;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
         }
 
         .log-btn:hover {
-          background: rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.16);
         }
 
         .log-info {
-          color: #5AC8FA;
+            color: #5AC8FA;
         }
 
         .log-succ {
-          color: var(--apple-green);
+            color: var(--apple-green);
         }
 
         .log-err {
-          color: #FF453A;
+            color: #FF453A;
         }
 
         .log-warn {
-          color: var(--apple-orange);
+            color: var(--apple-orange);
         }
 
         .modal {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.35);
-          backdrop-filter: blur(8px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 99;
-          opacity: 0;
-          visibility: hidden;
-          transition: opacity 0.2s ease, visibility 0.2s;
-          padding: 20px;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s;
+            padding: 20px;
         }
 
         .modal.show {
-          opacity: 1;
-          visibility: visible;
+            opacity: 1;
+            visibility: visible;
         }
 
         .modal-inner {
-          width: min(100%, 480px);
-          background: #fff;
-          border-radius: var(--radius-lg);
-          padding: 24px;
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-          box-shadow: var(--shadow-float);
-          border: 1px solid var(--apple-gray5);
+            width: min(100%, 480px);
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            box-shadow: var(--shadow-float);
+            border: 1px solid var(--apple-gray5);
         }
 
         .modal-foot {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
         }
 
         .empty-tip {
-          text-align: center;
-          color: var(--apple-gray3);
-          padding: 24px 0;
-          font-size: 14px;
+            text-align: center;
+            color: var(--apple-gray3);
+            padding: 24px 0;
+            font-size: 14px;
         }
 
         .setting-btn {
-          position: fixed;
-          right: 20px;
-          bottom: 20px;
-          width: 48px;
-          height: 48px;
-          border-radius: var(--radius-full);
-          background: var(--apple-blue);
-          color: #fff;
-          border: none;
-          box-shadow: var(--shadow-card);
-          font-size: 22px;
-          cursor: pointer;
-          z-index: 90;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s ease;
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-full);
+            background: var(--apple-blue);
+            color: #fff;
+            border: none;
+            box-shadow: var(--shadow-card);
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
         }
 
         .setting-btn:hover {
-          background: var(--apple-blue-hover);
-          transform: scale(1.06);
+            background: var(--apple-blue-hover);
+            transform: scale(1.06);
         }
 
         @media (max-width: 1024px) {
-          .wrapper {
-            padding: 12px;
-            gap: 12px;
-          }
-          .section {
-            gap: 12px;
-          }
-          .card {
-            padding: 16px;
-            gap: 14px;
-          }
-          .bottom-section .node-card {
-            min-width: 220px;
-          }
-          .setting-btn {
-            width: 44px;
-            height: 44px;
-            font-size: 20px;
-            right: 16px;
-            bottom: 16px;
-          }
+            .wrapper {
+                padding: 12px;
+                gap: 12px;
+            }
+            .section {
+                gap: 12px;
+            }
+            .card {
+                padding: 16px;
+                gap: 14px;
+            }
+            .bottom-section .node-card {
+                min-width: 220px;
+            }
+            .setting-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+                right: 16px;
+                bottom: 16px;
+            }
         }
 
         @media (max-width: 768px) {
-          html, body {
-            overflow: auto;
-            height: auto;
-            min-height: 100vh;
-          }
-          .wrapper {
-            height: auto;
-            min-height: 100vh;
-            padding: 10px;
-            gap: 10px;
-          }
-          .section {
-            flex-direction: column;
-            gap: 10px;
-          }
-          .top-section {
-            flex: none;
-            height: auto;
-          }
-          .bottom-section {
-            flex: none;
-            min-height: unset;
-          }
-          .bottom-section .node-card {
-            min-width: unset;
-            min-height: 200px;
-          }
-          .log-card {
-            min-height: 300px;
-          }
-          .card {
-            padding: 14px;
-            gap: 12px;
-          }
-          .setting-btn {
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
-            right: 14px;
-            bottom: 14px;
-          }
+            html, body {
+                overflow: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+            .wrapper {
+                height: auto;
+                min-height: 100vh;
+                padding: 10px;
+                gap: 10px;
+            }
+            .section {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .top-section {
+                flex: none;
+                height: auto;
+            }
+            .bottom-section {
+                flex: none;
+                min-height: unset;
+            }
+            .bottom-section .node-card {
+                min-width: unset;
+                min-height: 200px;
+            }
+            .log-card {
+                min-height: 300px;
+            }
+            .card {
+                padding: 14px;
+                gap: 12px;
+            }
+            .setting-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+                right: 14px;
+                bottom: 14px;
+            }
         }
 
         @media (max-height: 580px) {
-          .wrapper {
-            padding: 10px;
-            gap: 10px;
-          }
-          .card {
-            padding: 12px;
-            gap: 10px;
-          }
-          .top-section {
-            flex: 0 0 34%;
-          }
-          textarea {
-            min-height: 45px;
-          }
-          .upload-area {
-            padding: 14px;
-          }
+            .wrapper {
+                padding: 10px;
+                gap: 10px;
+            }
+            .card {
+                padding: 12px;
+                gap: 10px;
+            }
+            .top-section {
+                flex: 0 0 34%;
+            }
+            textarea {
+                min-height: 45px;
+            }
+            .upload-area {
+                padding: 14px;
+            }
         }
     </style>
 </head>
 <body>
+<script src="./webrtc.js"></script>
 <script src="./renderer.js"></script>
-
+<video width="320" height="240" autoplay></video>
 <div class="wrapper">
     <!-- 上半区 -->
     <div class="section top-section">
@@ -641,6 +683,11 @@
             <label class="form-label">当前节点名称</label>
             <input id="currentNodeNameInput" placeholder="请填写节点名称">
         </div>
+        <!-- 新增本机公网IPv6展示 -->
+        <div class="form-item">
+            <label class="form-label">本机公网IPv6地址</label>
+            <input id="publicIpv6Input" readonly placeholder="加载中...">
+        </div>
         <!-- 新增密钥输入框 -->
         <div class="form-item">
             <label class="form-label">全局通讯密钥</label>
@@ -670,6 +717,7 @@
     let secretKey; // 全局密钥变量
     let logData;
     let selectedFileList = null;
+    let publicIpv6 = ""; // 公网IPv6全局变量
 
     // 密码显示隐藏切换函数
     function togglePwd(inputId) {
@@ -685,217 +733,254 @@
     }
 
     (async () => {
-      nodeData = await getNodes();
-      saveFolderPath = await getSaveFolderPath();
-      currentNodeName = await getCurrentNodeName();
-      secretKey = await getMySecret();
-      logData = await getTraces();
-      document.getElementById("savePathInput").value = saveFolderPath;
-      document.getElementById("currentNodeNameInput").value = currentNodeName;
-      document.getElementById("secretKeyInput").value = secretKey;
-      renderNode();
-      renderLog();
-      bindUpload();
+        nodeData = await getNodes();
+        saveFolderPath = await getSaveFolderPath();
+        currentNodeName = await getCurrentNodeName();
+        secretKey = await getMySecret();
+        logData = await getTraces();
+        // 获取公网IPv6赋值到输入框
+        publicIpv6 = await getPublicIPv6();
+        document.getElementById("publicIpv6Input").value = publicIpv6;
+        document.getElementById("savePathInput").value = saveFolderPath;
+        document.getElementById("currentNodeNameInput").value = currentNodeName;
+        document.getElementById("secretKeyInput").value = secretKey;
+        renderNode();
+        renderLog();
+        bindUpload();
+        // 全局点击空白关闭节点下拉菜单
+        document.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('node-menu-trigger')) {
+                document.querySelectorAll('.node-dropdown-menu').forEach(menu => {
+                    menu.classList.remove('show');
+                })
+            }
+        })
     })();
 
     // 端口校验
     function isValidPort(port) {
-      const p = parseInt(port, 10);
-      return !isNaN(p) && p >= 1 && p <= 65535;
+        const p = parseInt(port, 10);
+        return !isNaN(p) && p >= 1 && p <= 65535;
     }
 
     // IPv4校验
     function isValidIPv4(ip) {
-      const parts = ip.split('.');
-      if (parts.length !== 4) return false;
-      return parts.every(part => {
-        const num = parseInt(part, 10);
-        return !isNaN(num) && num >= 0 && num <= 255 && part === num.toString();
-      });
+        const parts = ip.split('.');
+        if (parts.length !== 4) return false;
+        return parts.every(part => {
+            const num = parseInt(part, 10);
+            return !isNaN(num) && num >= 0 && num <= 255 && part === num.toString();
+        });
     }
 
     // IPv6校验
     function isValidIPv6(ip) {
-      if (!ip) return false;
-      if (ip.split('::').length > 2) return false;
-      const full = ip.includes('::')
-              ? ip.replace('::', ':'.repeat(9 - ip.split(':').length))
-              : ip;
-      const groups = full.split(':').filter(g => g !== '');
-      if (groups.length < 1 || groups.length > 8) return false;
-      return groups.every(g => /^[0-9a-fA-F]{1,4}$/.test(g));
+        if (!ip) return false;
+        if (ip.split('::').length > 2) return false;
+        const full = ip.includes('::')
+            ? ip.replace('::', ':'.repeat(9 - ip.split(':').length))
+            : ip;
+        const groups = full.split(':').filter(g => g !== '');
+        if (groups.length < 1 || groups.length > 8) return false;
+        return groups.every(g => /^[0-9a-fA-F]{1,4}$/.test(g));
     }
 
     // 节点地址总校验
     function validateNodeAddress(addr) {
-      if (!addr || !addr.trim()) return false;
-      const address = addr.trim();
+        if (!addr || !addr.trim()) return false;
+        const address = addr.trim();
 
-      if (!address.startsWith('[')) {
-        const lastColon = address.lastIndexOf(':');
-        if (lastColon === -1) return false;
-        const ip = address.substring(0, lastColon);
-        const port = address.substring(lastColon + 1);
-        return isValidIPv4(ip) && isValidPort(port);
-      }
+        if (!address.startsWith('[')) {
+            const lastColon = address.lastIndexOf(':');
+            if (lastColon === -1) return false;
+            const ip = address.substring(0, lastColon);
+            const port = address.substring(lastColon + 1);
+            return isValidIPv4(ip) && isValidPort(port);
+        }
 
-      if (address.startsWith('[') && address.includes(']:')) {
-        const closeBracket = address.indexOf(']');
-        const ip = address.substring(1, closeBracket);
-        const port = address.substring(closeBracket + 2);
-        return isValidIPv6(ip) && isValidPort(port);
-      }
+        if (address.startsWith('[') && address.includes(']:')) {
+            const closeBracket = address.indexOf(']');
+            const ip = address.substring(1, closeBracket);
+            const port = address.substring(closeBracket + 2);
+            return isValidIPv6(ip) && isValidPort(port);
+        }
 
-      return false;
+        return false;
     }
 
     // 文件上传绑定
     function bindUpload() {
-      const wrap = document.getElementById("uploadDom");
-      const tip = document.getElementById("fileTip");
+        const wrap = document.getElementById("uploadDom");
+        const tip = document.getElementById("fileTip");
 
-      wrap.onclick = async () => {
-        upload_files()
+        wrap.onclick = async () => {
+            upload_files()
                 .then(filePaths => {
-                  if (filePaths && filePaths.length) {
-                    selectedFileList = filePaths;
-                    tip.textContent = `已选${filePaths.length}个文件`;
-                  }
+                    if (filePaths && filePaths.length) {
+                        selectedFileList = filePaths;
+                        tip.textContent = `已选${filePaths.length}个文件`;
+                    }
                 })
                 .catch(err => {
-                  pushLog("系统", "打开文件选择框失败：" + err, "log-err");
+                    pushLog("系统", "打开文件选择框失败：" + err, "log-err");
                 });
-      };
+        };
 
-      window.ea.bindDropArea('uploadDom');
-      wrap.addEventListener('file-drop', (e) => {
-        const paths = e.detail;
-        if (paths.length) {
-          selectedFileList = paths;
-          tip.textContent = `已选${paths.length}个文件`;
-        }
-      });
+        window.ea.bindDropArea('uploadDom');
+        wrap.addEventListener('file-drop', (e) => {
+            const paths = e.detail;
+            if (paths.length) {
+                selectedFileList = paths;
+                tip.textContent = `已选${paths.length}个文件`;
+            }
+        });
     }
 
     // 节点弹窗打开：回填名称、地址、节点密钥
     function openNodeModal(node) {
-      const errorEl = document.getElementById("addrError");
-      errorEl.style.display = 'none';
+        const errorEl = document.getElementById("addrError");
+        errorEl.style.display = 'none';
 
-      if (node) {
-        document.getElementById("nodeName").value = node.name;
-        document.getElementById("nodeAddr").value = node.addr;
-        document.getElementById("nodeSecret").value = node.secret;
-      } else {
-        document.getElementById("nodeName").value = "";
-        document.getElementById("nodeAddr").value = "";
-        document.getElementById("nodeSecret").value = "";
-      }
-      // 弹窗打开重置密码框为隐藏状态
-      const nodeSecretInput = document.getElementById('nodeSecret');
-      nodeSecretInput.type = 'password';
-      nodeSecretInput.nextElementSibling.textContent = '👁︎';
-      document.getElementById("nodeModal").classList.add("show");
+        if (node) {
+            document.getElementById("nodeName").value = node.name;
+            document.getElementById("nodeAddr").value = node.addr;
+            document.getElementById("nodeSecret").value = node.secret;
+        } else {
+            document.getElementById("nodeName").value = "";
+            document.getElementById("nodeAddr").value = "";
+            document.getElementById("nodeSecret").value = "";
+        }
+        // 弹窗打开重置密码框为隐藏状态
+        const nodeSecretInput = document.getElementById('nodeSecret');
+        nodeSecretInput.type = 'password';
+        nodeSecretInput.nextElementSibling.textContent = '👁︎';
+        document.getElementById("nodeModal").classList.add("show");
     }
 
     function closeNodeModal() {
-      document.getElementById("nodeModal").classList.remove("show");
+        document.getElementById("nodeModal").classList.remove("show");
     }
 
     // 保存节点：读取节点密钥存入对象
     async function saveNode() {
-      const nname = document.getElementById("nodeName").value.trim();
-      const naddr = document.getElementById("nodeAddr").value.trim();
-      const nsecret = document.getElementById("nodeSecret").value.trim();
-      const errorEl = document.getElementById("addrError");
+        const nname = document.getElementById("nodeName").value.trim();
+        const naddr = document.getElementById("nodeAddr").value.trim();
+        const nsecret = document.getElementById("nodeSecret").value.trim();
+        const errorEl = document.getElementById("addrError");
 
-      errorEl.style.display = 'none';
+        errorEl.style.display = 'none';
 
-      if (!nname) {
-        pushLog("系统", "节点名称不能为空", "log-err");
-        return;
-      }
-      if (!naddr) {
-        errorEl.style.display = 'block';
-        pushLog("系统", "节点地址不能为空", "log-err");
-        return;
-      }
+        if (!nname) {
+            pushLog("系统", "节点名称不能为空", "log-err");
+            return;
+        }
+        if (!naddr) {
+            errorEl.style.display = 'block';
+            pushLog("系统", "节点地址不能为空", "log-err");
+            return;
+        }
 
-      if (!validateNodeAddress(naddr)) {
-        errorEl.style.display = 'block';
-        pushLog("系统", "节点地址格式错误", "log-err");
-        return;
-      }
+        if (!validateNodeAddress(naddr)) {
+            errorEl.style.display = 'block';
+            pushLog("系统", "节点地址格式错误", "log-err");
+            return;
+        }
 
-      const idx = nodeData.findIndex(i => i.name === nname);
-      if (idx != -1) {
-        updateNode(nname, naddr, nsecret);
-        pushLog("系统", "更新节点：" + nname, "log-info");
-      } else {
-        addNode(nname, naddr, nsecret);
-        pushLog("系统", "新增节点：" + nname, "log-succ");
-      }
-      nodeData = await getNodes();
-      renderNode();
-      closeNodeModal();
+        const idx = nodeData.findIndex(i => i.name === nname);
+        if (idx != -1) {
+            updateNode(nname, naddr, nsecret);
+            pushLog("系统", "更新节点：" + nname, "log-info");
+        } else {
+            addNode(nname, naddr, nsecret);
+            pushLog("系统", "新增节点：" + nname, "log-succ");
+        }
+        nodeData = await getNodes();
+        renderNode();
+        closeNodeModal();
     }
 
     // 删除节点
     async function deleteNode(name) {
-      const item = nodeData.find(i => i.name === name);
-      if (!confirm("确认删除节点【" + item.name + "】？")) return;
-      delNode(item.name);
-      nodeData = await getNodes();
-      renderNode();
-      pushLog("系统", "已删除节点：" + item.name, "log-warn");
+        const item = nodeData.find(i => i.name === name);
+        if (!confirm("确认删除节点【" + item.name + "】？")) return;
+        delNode(item.name);
+        nodeData = await getNodes();
+        renderNode();
+        pushLog("系统", "已删除节点：" + item.name, "log-warn");
     }
 
-    // 渲染节点列表（仅展示名称地址，密钥不展示）
+    // 新增：查看节点详情
+    function viewOtherNode(nodeObj) {
+        pushLog("系统", `查看节点【${nodeObj.name}】信息，地址：${nodeObj.addr}`, "log-info");
+        viewOtherNodeFromMain(nodeObj)
+    }
+    // 新增：控制节点
+    function controlNode(nodeObj) {
+        pushLog("系统", `进入节点【${nodeObj.name}】控制通道`, "log-succ");
+        // 这里可自行扩展控制逻辑
+    }
+
+    // 渲染节点列表 改为三点下拉菜单
     function renderNode() {
-      const listDom = document.getElementById("nodeList");
-      if (nodeData.length === 0) {
-        listDom.innerHTML = '<div class="empty-tip">暂无配置节点</div>';
-        return;
-      }
-      listDom.innerHTML = nodeData.map(item => `
+        const listDom = document.getElementById("nodeList");
+        if (nodeData.length === 0) {
+            listDom.innerHTML = '<div class="empty-tip">暂无配置节点</div>';
+            return;
+        }
+        listDom.innerHTML = nodeData.map(item => `
           <div class="node-item">
             <div class="node-info">
               <div class="name">${item.name}</div>
               <div class="addr">${item.addr}</div>
             </div>
-            <div class="node-opt">
-              <button class="btn btn-sm btn-default" onclick='openNodeModal(${JSON.stringify(item).replace(/"/g, "&quot;")})'>编辑</button>
-              <button class="btn btn-sm btn-danger" onclick="deleteNode('${item.name}')">删除</button>
+            <button class="node-menu-trigger" onclick="toggleNodeMenu(this)">⋯</button>
+            <div class="node-dropdown-menu">
+              <div class="menu-item" onclick='viewOtherNode(${JSON.stringify(item).replace(/"/g, "&quot;")})'>查看</div>
+              <div class="menu-item" onclick='controlNode(${JSON.stringify(item).replace(/"/g, "&quot;")})'>控制</div>
+              <div class="menu-item" onclick='openNodeModal(${JSON.stringify(item).replace(/"/g, "&quot;")})'>编辑</div>
+              <div class="menu-item danger" onclick="deleteNode('${item.name}')">删除</div>
             </div>
           </div>
         `).join("");
     }
 
+    // 切换节点下拉菜单显示
+    function toggleNodeMenu(triggerBtn) {
+        // 关闭其他菜单
+        document.querySelectorAll('.node-dropdown-menu').forEach(menu => {
+            menu.classList.remove('show');
+        })
+        // 打开当前菜单
+        const menu = triggerBtn.nextElementSibling;
+        menu.classList.toggle('show');
+        event.stopPropagation();
+    }
+
     // 日志功能
     function pushLog(target, msg, type = "log-info") {
-      const trace = {time: new Date().toLocaleString('zh-CN'), target, msg, type};
-      if (logData.length > 200) logData.length = 200;
-      addTrace(trace);
-      renderLog();
+        const trace = {time: new Date().toLocaleString('zh-CN'), target, msg, type};
+        if (logData.length > 200) logData.length = 200;
+        addTrace(trace);
+        renderLog();
     }
 
     function renderLog() {
-      getTraces()
-              .then(traces => {
+        getTraces()
+            .then(traces => {
                 logData = traces;
                 const box = document.getElementById("logBox");
                 if (logData.length === 0) {
-                  box.innerHTML = '<div class="empty-tip">暂无交互记录</div>';
-                  return;
+                    box.innerHTML = '<div class="empty-tip">暂无交互记录</div>';
+                    return;
                 }
                 box.innerHTML = logData.map((l, index) => {
-                  let btnHtml = '';
-                  if (l.msg.startsWith('接收到新文字信息：')) {
-                    btnHtml = `<button class="log-btn" onclick="copyLogText(${index})">复制</button>`;
-                  } else if (l.msg.startsWith('接收到新文件：')) {
-                    btnHtml = `<button class="log-btn" onclick="openFileInExplorer('${l.msg}')">打开位置</button>`;
-                  }
-                  return `
+                    let btnHtml = '';
+                    if (l.msg.startsWith('接收到新文字信息：')) {
+                        btnHtml = `<button class="log-btn" onclick="copyLogText(${index})">复制</button>`;
+                    } else if (l.msg.startsWith('接收到新文件：')) {
+                        btnHtml = `<button class="log-btn" onclick="openFileInExplorer('${l.msg}')">打开位置</button>`;
+                    }
+                    return `
                 <div class="log-line ${l.type}">
                   <span class="log-content">[${l.time}] [${l.target}] ${l.msg}</span>
                   ${btnHtml}
@@ -903,111 +988,111 @@
               `;
                 }).join("");
                 box.scrollTop = 0;
-              })
-              .catch(err => {
+            })
+            .catch(err => {
                 console.log(err)
-              });
+            });
     }
 
     function clearLog() {
-      if (!confirm("清空全部日志？")) return;
-      clearTrace();
-      renderLog();
-      pushLog("系统", "日志已全部清空", "log-warn");
+        if (!confirm("清空全部日志？")) return;
+        clearTrace();
+        renderLog();
+        pushLog("系统", "日志已全部清空", "log-warn");
     }
 
     // 发送文字
     function sendText() {
-      const text = document.getElementById("msgInput").value.trim();
-      if (!text) return pushLog("系统", "请输入文字内容", "log-err");
-      sendT(text);
-      pushLog("本地", "发送文本：" + text, "log-succ");
-      document.getElementById("msgInput").value = "";
+        const text = document.getElementById("msgInput").value.trim();
+        if (!text) return pushLog("系统", "请输入文字内容", "log-err");
+        sendT(text);
+        pushLog("本地", "发送文本：" + text, "log-succ");
+        document.getElementById("msgInput").value = "";
     }
 
     // 发送文件
     function sendFile() {
-      if (!selectedFileList || selectedFileList.length === 0) {
-        return pushLog("系统", "请选择上传文件", "log-err");
-      }
-      for (let f of selectedFileList) {
-        sendF(f);
-        pushLog("本地", `上传文件：${f}`, "log-succ");
-      }
-      document.getElementById("fileInput").value = "";
-      selectedFileList = null;
-      document.getElementById("fileTip").textContent = "未选择文件";
+        if (!selectedFileList || selectedFileList.length === 0) {
+            return pushLog("系统", "请选择上传文件", "log-err");
+        }
+        for (let f of selectedFileList) {
+            sendF(f);
+            pushLog("本地", `上传文件：${f}`, "log-succ");
+        }
+        document.getElementById("fileInput").value = "";
+        selectedFileList = null;
+        document.getElementById("fileTip").textContent = "未选择文件";
     }
 
     // 设置弹窗
     function openSettingModal() {
-      // 打开设置弹窗重置全局密钥输入框为隐藏
-      const secretInput = document.getElementById('secretKeyInput');
-      secretInput.type = 'password';
-      secretInput.nextElementSibling.textContent = '👁︎';
-      document.getElementById("settingModal").classList.add("show");
+        // 打开设置弹窗重置全局密钥输入框为隐藏
+        const secretInput = document.getElementById('secretKeyInput');
+        secretInput.type = 'password';
+        secretInput.nextElementSibling.textContent = '👁︎';
+        document.getElementById("settingModal").classList.add("show");
     }
 
     function closeSettingModal() {
-      document.getElementById("settingModal").classList.remove("show");
+        document.getElementById("settingModal").classList.remove("show");
     }
 
     // 选择文件夹
     async function selectSaveFolder() {
-      select_folder()
-              .then(folderPath => {
+        select_folder()
+            .then(folderPath => {
                 if (folderPath && folderPath.length > 0) {
-                  document.getElementById("savePathInput").value = folderPath;
+                    document.getElementById("savePathInput").value = folderPath;
                 }
-              })
-              .catch(err => {
+            })
+            .catch(err => {
                 pushLog("系统", "选择目录失败：" + err, "log-err");
-              });
+            });
     }
 
     // 保存配置（全局密钥）
     function saveSettingPath() {
-      const path = document.getElementById("savePathInput").value.trim();
-      const nodeName = document.getElementById("currentNodeNameInput").value.trim();
-      const key = document.getElementById("secretKeyInput").value.trim();
+        const path = document.getElementById("savePathInput").value.trim();
+        const nodeName = document.getElementById("currentNodeNameInput").value.trim();
+        const key = document.getElementById("secretKeyInput").value.trim();
 
-      if (!path) {
-        pushLog("系统", "请先选择保存文件夹", "log-warn");
-        return;
-      }
-      if (!nodeName) {
-        pushLog("系统", "请填写当前节点名称", "log-warn");
-        return;
-      }
+        if (!path) {
+            pushLog("系统", "请先选择保存文件夹", "log-warn");
+            return;
+        }
+        if (!nodeName) {
+            pushLog("系统", "请填写当前节点名称", "log-warn");
+            return;
+        }
 
-      saveFolderPath = path;
-      currentNodeName = nodeName;
-      secretKey = key;
+        saveFolderPath = path;
+        currentNodeName = nodeName;
+        secretKey = key;
 
-      saveFolderPathToMain(saveFolderPath);
-      saveCurrentNodeNameToMain(currentNodeName);
-      saveMySecretToMain(secretKey);
+        saveFolderPathToMain(saveFolderPath);
+        saveCurrentNodeNameToMain(currentNodeName);
+        saveMySecretToMain(secretKey);
 
-      pushLog("系统", "配置已保存：节点名称「" + currentNodeName + "」，保存路径「" + saveFolderPath + "」，全局密钥已更新", "log-succ");
-      closeSettingModal();
+        pushLog("系统", "配置已保存：节点名称「" + currentNodeName + "」，保存路径「" + saveFolderPath + "」，全局密钥已更新", "log-succ");
+        closeSettingModal();
     }
 
     // 日志操作：复制文字
     function copyLogText(index) {
-      const text = logData[index].msg.slice(9);
-      navigator.clipboard.writeText(text).then(() => {
-      }).catch(err => {
-        pushLog("系统", "复制失败：" + err, "log-err");
-      });
+        const text = logData[index].msg.slice(9);
+        navigator.clipboard.writeText(text).then(() => {
+        }).catch(err => {
+            pushLog("系统", "复制失败：" + err, "log-err");
+        });
     }
 
     // 日志操作：打开文件位置
     function openFileInExplorer(fileName) {
-      if (window.ea) {
-        window.ea.showItem(fileName.slice(7));
-      } else {
-        pushLog("系统", "无法打开文件位置，请检查环境配置", "log-err");
-      }
+        if (window.ea) {
+            window.ea.showItem(fileName.slice(7));
+        } else {
+            pushLog("系统", "无法打开文件位置，请检查环境配置", "log-err");
+        }
     }
 </script>
 </body>

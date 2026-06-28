@@ -12,7 +12,7 @@ const server = http.createServer((req, res) => {
     const s1 = md5('Hua' + db.data.secret + getNowMin())
     const s2 = md5('Hua' + db.data.secret + getPrevMin())
     const s3 = md5('Hua' + getPrevMin()) // unset
-    if(secret !== s1 && secret !== s2 && db.data.secret !== '') {
+    if (secret !== s1 && secret !== s2 && db.data.secret !== '') {
         res.writeHead(403)
         res.end(JSON.stringify({code: 403}))
         return
@@ -42,6 +42,45 @@ const server = http.createServer((req, res) => {
             }
             win.webContents.send('trace-show', trace)
             res.end(JSON.stringify({code: 200}))
+        }).catch(err => {
+            res.writeHead(500);
+            res.end(JSON.stringify({code: 500, msg: err.message}))
+        })
+    } else if (pathname === '/' && req.method === 'PUT') {
+        const type = req.headers['mwfh-rtc-type'];
+        const remoteSecret = req.headers['mwfh-my-secret'];
+        // 新增PUT路由处理：接收RTC JSON数据
+        let bodyBuf = [];
+        req.on('data', chunk => bodyBuf.push(chunk));
+        req.on('end', () => {
+            try {
+                const bodyStr = Buffer.concat(bodyBuf).toString('utf8');
+                const payload = JSON.parse(bodyStr);
+                const targetName = payload.name;
+                payload.addr = req.socket.remoteAddress;
+                payload.secret = remoteSecret;
+                const rtcData = payload.data;
+                const trace = {
+                    "time": new Date().toLocaleString('zh-CN'),
+                    "target": targetName,
+                    "msg": `收到RTC指令：${JSON.stringify(rtcData)}`,
+                    "type": "log-succ"
+                }
+                win.webContents.send('trace-show', trace)
+                if (type === 'offer') {
+                    win.webContents.send('rtc-recv', payload)
+                } else if (type === 'answer') {
+                    win.webContents.send('rtc-callback', payload)
+                }
+                res.end(JSON.stringify({code: 200}))
+            } catch (e) {
+                res.writeHead(500);
+                res.end(JSON.stringify({code: 500, msg: e.message}))
+            }
+        })
+        req.on('error', err => {
+            res.writeHead(500);
+            res.end(JSON.stringify({code: 500, msg: err.message}))
         })
     } else {
         res.writeHead(404)
@@ -51,6 +90,7 @@ const server = http.createServer((req, res) => {
 
 /**
  * 1. 客户端：发送 GET 请求
+ * @param {string} secret 密钥
  * @param {string} baseUrl 基础地址，例如 http://192.168.1.1:8080/api/text
  * @param {object} params 参数对象，自动转为 query 拼接
  * @returns {Promise<any>} 响应结果，自动尝试解析 JSON
@@ -67,13 +107,13 @@ function sendGet(secret, baseUrl, params = {}) {
             host = host.slice(1, -1);
         }
         const opt = {
-          hostname: host,
-          port: urlObj.port,
-          path: urlObj.pathname + urlObj.search,
-          method: "GET",
-          headers: {
-            'Mwfh-Secret': md5('Hua' + secret + getNowMin())
-          }
+            hostname: host,
+            port: urlObj.port,
+            path: urlObj.pathname + urlObj.search,
+            method: "GET",
+            headers: {
+                'Mwfh-Secret': md5('Hua' + secret + getNowMin())
+            }
         };
         const req = http.get(opt, (res) => {
             let rawData = '';
@@ -86,8 +126,8 @@ function sendGet(secret, baseUrl, params = {}) {
                     resolve(rawData);
                 }
             });
-            if(res.statusCode !== 200){
-              reject(new Error('文字发送错误：' + res.statusCode));
+            if (res.statusCode !== 200) {
+                reject(new Error('文字发送错误：' + res.statusCode));
             }
         });
 
@@ -97,6 +137,68 @@ function sendGet(secret, baseUrl, params = {}) {
             reject(new Error('文字发送超时'));
         });
     });
+}
+
+/**
+ * 新增 客户端：PUT 发送RTC JSON数据
+ * @param {string} secret 密钥
+ * @param {string} url 请求地址
+ * @param {object} payload 要传递的RTC json数据 {name, data}
+ * @returns {Promise<any>} 服务端返回JSON
+ */
+function sendPutRtc(secret, url, type, payload = {}) {
+    return new Promise((resolve, reject) => {
+        const urlObj = new URL(url);
+        const sendBody = JSON.stringify(payload);
+        let host = urlObj.hostname
+        if (host.startsWith('[') && host.endsWith(']')) {
+            host = host.slice(1, -1);
+        }
+        const options = {
+            hostname: host,
+            port: urlObj.port,
+            path: urlObj.pathname + urlObj.search,
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8',
+                'Content-Length': Buffer.byteLength(sendBody),
+                'Mwfh-Secret': md5('Hua' + secret + getNowMin()),
+                'Mwfh-My-Secret': db.data.secret,
+                'Mwfh-Rtc-Type': type
+            }
+        };
+
+        const req = http.request(options, (res) => {
+            let rawData = '';
+            res.setEncoding('utf8');
+            res.on('data', chunk => rawData += chunk);
+            res.on('end', () => {
+                try {
+                    const json = JSON.parse(rawData);
+                    if (res.statusCode !== 200) {
+                        reject(new Error(`RTC传输错误：${res.statusCode} ${json.msg || ''}`));
+                        return;
+                    }
+                    resolve(json);
+                } catch (err) {
+                    if (res.statusCode !== 200) {
+                        reject(new Error(`RTC传输错误：${res.statusCode}`));
+                    } else {
+                        resolve(rawData);
+                    }
+                }
+            });
+        });
+
+        req.on('error', reject);
+        req.setTimeout(10000, () => {
+            req.destroy();
+            reject(new Error('RTC PUT请求超时'));
+        });
+
+        req.write(sendBody);
+        req.end();
+    })
 }
 
 /**
@@ -151,8 +253,8 @@ function sendPostFile(secret, url, filePath, extraFields = {}, fieldName = 'file
                     resolve(rawData);
                 }
             });
-            if(res.statusCode !== 200){
-              reject(new Error('文件传输错误：' + res.statusCode));
+            if (res.statusCode !== 200) {
+                reject(new Error('文件传输错误：' + res.statusCode));
             }
         });
 
@@ -298,24 +400,24 @@ function start(mainWin, mainDb, args) {
     if (mainPort) {
         port = Number(mainPort)
     }
-    if(server){
+    if (server) {
         server.close((err) => {
-          let msg
-          let type
-          if (err) {
-            msg = '关闭失败：' + err.message
-            type = 'log-succ'
-          } else {
-            msg = '传输服务已停止'
-            type = 'log-err'
-          }
-          const trace = {
-              "time": new Date().toLocaleString('zh-CN'),
-              "target": '系统',
-              "msg": msg,
-              "type": type
-          }
-          win.webContents.send('trace-show', trace)
+            let msg
+            let type
+            if (err) {
+                msg = '关闭失败：' + err.message
+                type = 'log-succ'
+            } else {
+                msg = '传输服务已停止'
+                type = 'log-err'
+            }
+            const trace = {
+                "time": new Date().toLocaleString('zh-CN'),
+                "target": '系统',
+                "msg": msg,
+                "type": type
+            }
+            win.webContents.send('trace-show', trace)
         });
     }
     server.listen(port, () => {
@@ -332,23 +434,23 @@ function start(mainWin, mainDb, args) {
 }
 
 function getTimeToMinNoSep(dateObj) {
-  const y = dateObj.getFullYear();
-  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  const h = String(dateObj.getHours()).padStart(2, '0');
-  const mi = String(dateObj.getMinutes()).padStart(2, '0');
-  return `${y}${m}${day}${h}${mi}`;
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const h = String(dateObj.getHours()).padStart(2, '0');
+    const mi = String(dateObj.getMinutes()).padStart(2, '0');
+    return `${y}${m}${day}${h}${mi}`;
 }
 
 // 获取当前时间（当前分）
 function getNowMin() {
-  return getTimeToMinNoSep(new Date());
+    return getTimeToMinNoSep(new Date());
 }
 
 // 获取前一分钟
 function getPrevMin() {
-  const prev = new Date(Date.now() - 60 * 1000);
-  return getTimeToMinNoSep(prev);
+    const prev = new Date(Date.now() - 60 * 1000);
+    return getTimeToMinNoSep(prev);
 }
 
 
@@ -358,13 +460,14 @@ function getPrevMin() {
  * @returns {string} 32位小写MD5
  */
 function md5(str) {
-  return crypto.createHash('md5')
-    .update(str, 'utf8')
-    .digest('hex');
+    return crypto.createHash('md5')
+        .update(str, 'utf8')
+        .digest('hex');
 }
 
 module.exports = {
     start,
     sendGet,
-    sendPostFile
+    sendPostFile,
+    sendPutRtc
 }

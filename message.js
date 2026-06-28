@@ -2,10 +2,12 @@ const {dialog, ipcMain, shell} = require('electron')
 const path = require('node:path')
 const os = require('os')
 const http = require('./http')
+const ip = require('./ip.js')
 
 let win
 let db
 let appArgs
+let ipv6
 
 ipcMain.on('addNode', async (event, node) => {
     const saveNode = db.data.nodes.find(n => n.name === node.name)
@@ -163,6 +165,64 @@ ipcMain.on('saveMySecret', async (event, secret) => {
     http.start(win, db, appArgs)
 })
 
+ipcMain.handle('get-public-ipv6', async () => {
+    return ipv6
+})
+
+ipcMain.on('viewOtherNode', async (event, node, data) => {
+    let addr = node.addr
+    if (!addr.startsWith("http://")) {
+        addr = "http://" + addr
+    }
+    http.sendPutRtc(node.secret, addr, 'offer', {
+        name: db.data.nodeName,
+        data: data
+    }).then(() => {
+        const trace = {
+            "time": new Date().toLocaleString('zh-CN'),
+            "target": '成功',
+            "msg": '[' + node.addr + '] ' + '查看屏幕请求成功',
+            "type": "log-succ"
+        }
+        win.webContents.send('trace-show', trace)
+    }).catch(err => {
+        const trace = {
+            "time": new Date().toLocaleString('zh-CN'),
+            "target": '错误',
+            "msg": '[' + node.addr + '] ' + err.message,
+            "type": "log-err"
+        }
+        win.webContents.send('trace-show', trace)
+    })
+})
+
+ipcMain.on('callbackViewNode', async (event, node, data) => {
+    let addr = node.addr
+    if (!addr.startsWith("http://")) {
+        addr = "http://" + addr
+    }
+    http.sendPutRtc(node.secret, addr, 'answer', {
+        name: db.data.nodeName,
+        data: data
+    }).then(() => {
+        const trace = {
+            "time": new Date().toLocaleString('zh-CN'),
+            "target": '成功',
+            "msg": '[' + node.addr + '] ' + '查看屏幕响应成功',
+            "type": "log-succ"
+        }
+        win.webContents.send('trace-show', trace)
+    }).catch(err => {
+        const trace = {
+            "time": new Date().toLocaleString('zh-CN'),
+            "target": '错误',
+            "msg": '[' + node.addr + '] ' + err.message,
+            "type": "log-err"
+        }
+        win.webContents.send('trace-show', trace)
+    })
+})
+
 function getMac() {
     const interfaces = os.networkInterfaces();
     // 虚拟网卡关键词，用于排除
@@ -195,6 +255,7 @@ function start(mainWin, mainDb, mainAppArgs) {
     win = mainWin
     db = mainDb
     appArgs = mainAppArgs
+    ipv6 = ip.getPublicIPv6()
 }
 
 module.exports = {
