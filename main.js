@@ -5,7 +5,8 @@ const http = require('./http.js')
 const dbManager = require('./db.js')
 
 let win
-let isQuitting //兼容mac退出
+let isQuitting
+let tray
 
 const appArgs = parseAppArgs()
 
@@ -43,16 +44,12 @@ const createWindow = () => {
 }
 
 app.whenReady().then(async () => {
-    // if (process.platform === 'darwin') {
-    //   const dockIcon = path.join(__dirname, './logo.icns')
-    //   app.dock.setIcon(dockIcon)
-    // }
     createWindow()
     createTray()
     message.start(win, db, appArgs)
     http.start(win, db, appArgs)
     if (process.platform === 'darwin') {
-        const dockIconPath = path.join(__dirname, './logo.png')
+        const dockIconPath = getIcon()
         app.dock.setIcon(dockIconPath)
     }
     session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
@@ -77,17 +74,9 @@ app.on('window-all-closed', () => {
         app.quit()
     }
 })
-app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow()
-    } else {
-        win.show()
-        win.focus()
-    }
-})
 
 function createTray() {
-    const tray = new Tray(getIcon())
+    tray = new Tray(getIcon('small'))
     const contextMenu = Menu.buildFromTemplate([
         {
             label: '显示窗口',
@@ -150,6 +139,9 @@ function parseAppArgs() {
     return args;
 }
 
-function getIcon() {
+function getIcon(type) {
+    if(type === 'small'){
+        return nativeImage.createFromPath(path.join(__dirname, 'logosmall.png'))
+    }
     return nativeImage.createFromPath(path.join(__dirname, 'logo.png'))
 }

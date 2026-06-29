@@ -84,6 +84,7 @@
         .bottom-section .node-card {
             flex: 2;
             min-width: 260px;
+            overflow: visible;
         }
 
         .card {
@@ -115,9 +116,28 @@
             border-radius: var(--radius-full);
         }
 
+        /* 视频预览容器 */
+        .video-preview {
+            width: 100%;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--apple-dark-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-preview video {
+            width: 100%;
+            height: auto;
+            max-height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+
         .node-list {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -128,7 +148,6 @@
             border: 1px solid var(--apple-gray5);
             border-radius: var(--radius-md);
             display: flex;
-            justify-content: space-between;
             align-items: center;
             background: var(--apple-bg-window);
             gap: 10px;
@@ -143,6 +162,13 @@
             flex: 1;
             min-width: 0;
             overflow: hidden;
+            /* 无hover时无右边距，文字铺满整行 */
+            padding-right: 0;
+            transition: padding-right 0.18s ease;
+        }
+        /* 只有hover时才留出按钮空间 */
+        .node-item:hover .node-info {
+            padding-right: 140px;
         }
 
         .node-info .name {
@@ -163,50 +189,48 @@
             text-overflow: ellipsis;
         }
 
-        /* 节点三点菜单样式 新增 */
-        .node-menu-trigger {
+        /* 悬停操作按钮组 */
+        .node-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%) translateX(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+        }
+        .node-item:hover .node-actions {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0s;
+        }
+
+        .node-action-btn {
             width: 28px;
             height: 28px;
-            border-radius: var(--radius-full);
+            border-radius: var(--radius-sm);
             border: none;
-            background: transparent;
-            font-size: 18px;
+            background: #fff;
             color: var(--apple-gray2);
+            font-size: 14px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
-        .node-menu-trigger:hover {
-            background: var(--apple-gray5);
+        .node-action-btn:hover {
+            background: var(--apple-blue);
+            color: #fff;
         }
-        .node-dropdown-menu {
-            position: absolute;
-            right: 8px;
-            top: calc(100% + 4px);
-            background: #fff;
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-float);
-            border: 1px solid var(--apple-gray5);
-            min-width: 110px;
-            z-index: 10;
-            overflow: hidden;
-            display: none;
-        }
-        .node-dropdown-menu.show {
-            display: block;
-        }
-        .menu-item {
-            padding: 8px 14px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .menu-item:hover {
-            background: var(--apple-bg-hover);
-        }
-        .menu-item.danger {
-            color: var(--apple-red);
+        .node-action-btn.danger:hover {
+            background: var(--apple-red);
+            color: #fff;
         }
 
         .form-item {
@@ -386,21 +410,27 @@
             color: #EBEBF0;
         }
 
+        /* 日志行：按钮靠顶部对齐 */
         .log-line {
             margin-bottom: 8px;
             line-height: 1.4;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
         }
 
+        /* 核心：最多3行，自动换行，超出显示... */
         .log-content {
             flex: 1;
             min-width: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+            word-break: break-all;
+            line-height: 1.45;
         }
 
         .log-btn {
@@ -572,6 +602,20 @@
                 right: 14px;
                 bottom: 14px;
             }
+            /* 移动端始终显示操作按钮，恢复流式布局 */
+            .node-actions {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(-50%) translateX(0);
+                position: static;
+            }
+            .node-item:hover .node-info {
+                padding-right: 0;
+            }
+            .node-item {
+                display: flex;
+                justify-content: space-between;
+            }
         }
 
         @media (max-height: 580px) {
@@ -596,9 +640,6 @@
     </style>
 </head>
 <body>
-<script src="./webrtc.js"></script>
-<script src="./renderer.js"></script>
-<video width="320" height="240" autoplay></video>
 <div class="wrapper">
     <!-- 上半区 -->
     <div class="section top-section">
@@ -636,79 +677,87 @@
         <!-- 右侧：节点配置 -->
         <div class="card node-card">
             <div class="card-title">节点配置</div>
+            <!-- 视频预览区域 -->
+            <div class="video-preview">
+                <video autoplay muted playsinline></video>
+            </div>
             <button class="btn btn-primary" onclick="openNodeModal()">+ 添加节点</button>
             <div class="node-list" id="nodeList"></div>
         </div>
     </div>
-</div>
 
-<!-- 右下角设置按钮 -->
-<button class="setting-btn" onclick="openSettingModal()">⚙︎</button>
+    <!-- 右下角设置按钮 -->
+    <button class="setting-btn" onclick="openSettingModal()">⚙︎</button>
 
-<!-- 节点弹窗【新增节点密钥输入框】 -->
-<div class="modal" id="nodeModal">
-    <div class="modal-inner">
-        <div class="card-title">编辑/新增交互节点</div>
-        <div class="form-item">
-            <label class="form-label">节点名称</label>
-            <input id="nodeName" placeholder="例如：业务系统A">
-        </div>
-        <div class="form-item">
-            <label class="form-label">节点地址（IP:端口）</label>
-            <input id="nodeAddr" placeholder="例如：192.168.1.1:8080 或 [::1]:8080">
-            <div class="form-error" id="addrError">
-                格式错误，仅支持 IPv4:端口（如 192.168.1.1:8080）或 [IPv6]:端口（如 [::1]:8080）
+    <!-- 节点弹窗 -->
+    <div class="modal" id="nodeModal">
+        <div class="modal-inner">
+            <div class="card-title">编辑/新增交互节点</div>
+            <div class="form-item">
+                <label class="form-label">节点名称</label>
+                <input id="nodeName" placeholder="例如：业务系统A">
+            </div>
+            <div class="form-item">
+                <label class="form-label">节点地址（IP:端口）</label>
+                <input id="nodeAddr" placeholder="例如：192.168.1.1:8080 或 [::1]:8080">
+                <div class="form-error" id="addrError">
+                    格式错误，仅支持 IPv4:端口（如 192.168.1.1:8080）或 [IPv6]:端口（如 [::1]:8080）
+                </div>
+            </div>
+            <!-- 节点独立密钥 -->
+            <div class="form-item">
+                <label class="form-label">节点通讯密钥</label>
+                <div class="input-pwd-wrap">
+                    <input id="nodeSecret" type="password" placeholder="填写该节点独立通讯密钥">
+                    <button type="button" class="pwd-eye-btn" onclick="togglePwd('nodeSecret')">👁︎</button>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-default" onclick="closeNodeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveNode()">储存</button>
             </div>
         </div>
-        <!-- 新增节点独立密钥 -->
-        <div class="form-item">
-            <label class="form-label">节点通讯密钥</label>
-            <div class="input-pwd-wrap">
-                <input id="nodeSecret" type="password" placeholder="填写该节点独立通讯密钥">
-                <button type="button" class="pwd-eye-btn" onclick="togglePwd('nodeSecret')">👁︎</button>
+    </div>
+
+    <!-- 系统设置弹窗 -->
+    <div class="modal" id="settingModal">
+        <div class="modal-inner">
+            <div class="card-title">系统设置</div>
+            <div class="form-item">
+                <label class="form-label">当前节点名称</label>
+                <input id="currentNodeNameInput" placeholder="请填写节点名称">
             </div>
-        </div>
-        <div class="modal-foot">
-            <button class="btn btn-default" onclick="closeNodeModal()">取消</button>
-            <button class="btn btn-primary" onclick="saveNode()">储存</button>
+            <!-- 本机公网IPv6展示 -->
+            <div class="form-item">
+                <label class="form-label">本机公网IPv6地址</label>
+                <input id="publicIpv6Input" readonly placeholder="加载中...">
+            </div>
+            <!-- 全局密钥输入框 -->
+            <div class="form-item">
+                <label class="form-label">全局通讯密钥</label>
+                <div class="input-pwd-wrap">
+                    <input id="secretKeyInput" placeholder="输入通讯加密密钥" type="password">
+                    <button type="button" class="pwd-eye-btn" onclick="togglePwd('secretKeyInput')">👁︎</button>
+                </div>
+            </div>
+            <div class="form-item">
+                <label class="form-label">文件默认保存路径</label>
+                <div class="form-row">
+                    <input id="savePathInput" placeholder="请选择文件夹路径" readonly>
+                    <button class="btn btn-default" onclick="selectSaveFolder()">浏览</button>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-default" onclick="closeSettingModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveSettingPath()">储存配置</button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- 系统设置弹窗 -->
-<div class="modal" id="settingModal">
-    <div class="modal-inner">
-        <div class="card-title">系统设置</div>
-        <div class="form-item">
-            <label class="form-label">当前节点名称</label>
-            <input id="currentNodeNameInput" placeholder="请填写节点名称">
-        </div>
-        <!-- 新增本机公网IPv6展示 -->
-        <div class="form-item">
-            <label class="form-label">本机公网IPv6地址</label>
-            <input id="publicIpv6Input" readonly placeholder="加载中...">
-        </div>
-        <!-- 新增密钥输入框 -->
-        <div class="form-item">
-            <label class="form-label">全局通讯密钥</label>
-            <div class="input-pwd-wrap">
-                <input id="secretKeyInput" placeholder="输入通讯加密密钥" type="password">
-                <button type="button" class="pwd-eye-btn" onclick="togglePwd('secretKeyInput')">👁︎</button>
-            </div>
-        </div>
-        <div class="form-item">
-            <label class="form-label">文件默认保存路径</label>
-            <div class="form-row">
-                <input id="savePathInput" placeholder="请选择文件夹路径" readonly>
-                <button class="btn btn-default" onclick="selectSaveFolder()">浏览</button>
-            </div>
-        </div>
-        <div class="modal-foot">
-            <button class="btn btn-default" onclick="closeSettingModal()">取消</button>
-            <button class="btn btn-primary" onclick="saveSettingPath()">储存配置</button>
-        </div>
-    </div>
-</div>
+<!-- 外部脚本统一放在 body 末尾 -->
+<script src="./webrtc.js"></script>
+<script src="./renderer.js"></script>
 
 <script>
     let nodeData;
@@ -740,21 +789,13 @@
         logData = await getTraces();
         // 获取公网IPv6赋值到输入框
         publicIpv6 = await getPublicIPv6();
-        document.getElementById("publicIpv6Input").value = publicIpv6;
+        document.getElementById("publicIpv6Input").value = '[' + publicIpv6 + ']';
         document.getElementById("savePathInput").value = saveFolderPath;
         document.getElementById("currentNodeNameInput").value = currentNodeName;
         document.getElementById("secretKeyInput").value = secretKey;
         renderNode();
         renderLog();
         bindUpload();
-        // 全局点击空白关闭节点下拉菜单
-        document.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('node-menu-trigger')) {
-                document.querySelectorAll('.node-dropdown-menu').forEach(menu => {
-                    menu.classList.remove('show');
-                })
-            }
-        })
     })();
 
     // 端口校验
@@ -909,51 +950,39 @@
         pushLog("系统", "已删除节点：" + item.name, "log-warn");
     }
 
-    // 新增：查看节点详情
+    // 查看节点详情
     function viewOtherNode(nodeObj) {
         pushLog("系统", `查看节点【${nodeObj.name}】信息，地址：${nodeObj.addr}`, "log-info");
         viewOtherNodeFromMain(nodeObj)
     }
-    // 新增：控制节点
+    // 控制节点
     function controlNode(nodeObj) {
         pushLog("系统", `进入节点【${nodeObj.name}】控制通道`, "log-succ");
         // 这里可自行扩展控制逻辑
     }
 
-    // 渲染节点列表 改为三点下拉菜单
+    // 渲染节点列表
     function renderNode() {
         const listDom = document.getElementById("nodeList");
         if (nodeData.length === 0) {
             listDom.innerHTML = '<div class="empty-tip">暂无配置节点</div>';
             return;
         }
+        const itemStr = JSON.stringify;
         listDom.innerHTML = nodeData.map(item => `
           <div class="node-item">
             <div class="node-info">
               <div class="name">${item.name}</div>
               <div class="addr">${item.addr}</div>
             </div>
-            <button class="node-menu-trigger" onclick="toggleNodeMenu(this)">⋯</button>
-            <div class="node-dropdown-menu">
-              <div class="menu-item" onclick='viewOtherNode(${JSON.stringify(item).replace(/"/g, "&quot;")})'>查看</div>
-              <div class="menu-item" onclick='controlNode(${JSON.stringify(item).replace(/"/g, "&quot;")})'>控制</div>
-              <div class="menu-item" onclick='openNodeModal(${JSON.stringify(item).replace(/"/g, "&quot;")})'>编辑</div>
-              <div class="menu-item danger" onclick="deleteNode('${item.name}')">删除</div>
+            <div class="node-actions">
+              <button class="node-action-btn" title="观看" onclick='viewOtherNode(${itemStr(item).replace(/"/g, "&quot;")})'>观看</button>
+              <button class="node-action-btn" title="控制" onclick='controlNode(${itemStr(item).replace(/"/g, "&quot;")})'>控制</button>
+              <button class="node-action-btn" title="编辑" onclick='openNodeModal(${itemStr(item).replace(/"/g, "&quot;")})'>编辑</button>
+              <button class="node-action-btn danger" title="删除" onclick="deleteNode('${item.name}')">删除</button>
             </div>
           </div>
         `).join("");
-    }
-
-    // 切换节点下拉菜单显示
-    function toggleNodeMenu(triggerBtn) {
-        // 关闭其他菜单
-        document.querySelectorAll('.node-dropdown-menu').forEach(menu => {
-            menu.classList.remove('show');
-        })
-        // 打开当前菜单
-        const menu = triggerBtn.nextElementSibling;
-        menu.classList.toggle('show');
-        event.stopPropagation();
     }
 
     // 日志功能

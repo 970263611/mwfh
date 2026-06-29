@@ -180,7 +180,7 @@ ipcMain.on('viewOtherNode', async (event, node, data) => {
     }).then(() => {
         const trace = {
             "time": new Date().toLocaleString('zh-CN'),
-            "target": '成功',
+            "target": addr,
             "msg": '[' + node.addr + '] ' + '查看屏幕请求成功',
             "type": "log-succ"
         }

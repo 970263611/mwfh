@@ -6,6 +6,7 @@ const crypto = require('crypto');
 
 let win
 let db
+let args
 // 创建服务
 const server = http.createServer((req, res) => {
     const secret = req.headers['mwfh-secret'];
@@ -48,6 +49,7 @@ const server = http.createServer((req, res) => {
         })
     } else if (pathname === '/' && req.method === 'PUT') {
         const type = req.headers['mwfh-rtc-type'];
+        const remotePort = req.headers['mwfh-my-port'];
         const remoteSecret = req.headers['mwfh-my-secret'];
         // 新增PUT路由处理：接收RTC JSON数据
         let bodyBuf = [];
@@ -57,7 +59,15 @@ const server = http.createServer((req, res) => {
                 const bodyStr = Buffer.concat(bodyBuf).toString('utf8');
                 const payload = JSON.parse(bodyStr);
                 const targetName = payload.name;
-                payload.addr = req.socket.remoteAddress;
+                let remoteAddr
+                if (req.socket.remoteAddress) {
+                    if (req.socket.remoteAddress.includes(':')) {
+                        remoteAddr = '[' + req.socket.remoteAddress + ']:' + remotePort
+                    } else {
+                        remoteAddr = req.socket.remoteAddress + ':' + remotePort
+                    }
+                }
+                payload.addr = remoteAddr
                 payload.secret = remoteSecret;
                 const rtcData = payload.data;
                 const trace = {
@@ -68,9 +78,9 @@ const server = http.createServer((req, res) => {
                 }
                 win.webContents.send('trace-show', trace)
                 if (type === 'offer') {
-                    win.webContents.send('rtc-recv', payload)
+                    win.webContents.send('rtc-recv', JSON.stringify(payload))
                 } else if (type === 'answer') {
-                    win.webContents.send('rtc-callback', payload)
+                    win.webContents.send('rtc-callback', JSON.stringify(payload))
                 }
                 res.end(JSON.stringify({code: 200}))
             } catch (e) {
@@ -164,7 +174,8 @@ function sendPutRtc(secret, url, type, payload = {}) {
                 'Content-Length': Buffer.byteLength(sendBody),
                 'Mwfh-Secret': md5('Hua' + secret + getNowMin()),
                 'Mwfh-My-Secret': db.data.secret,
-                'Mwfh-Rtc-Type': type
+                'Mwfh-Rtc-Type': type,
+                'Mwfh-My-Port': args.port,
             }
         };
 
@@ -392,13 +403,16 @@ function splitBuffer(buffer, separator) {
 }
 
 
-function start(mainWin, mainDb, args) {
-    const mainPort = args.port
+function start(mainWin, mainDb, mainArgs) {
+    args = mainArgs
     win = mainWin
     db = mainDb
+    const mainPort = args.port
     let port = 5216
     if (mainPort) {
         port = Number(mainPort)
+    } else {
+        args.port = port
     }
     if (server) {
         server.close((err) => {
