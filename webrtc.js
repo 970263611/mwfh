@@ -110,7 +110,7 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     let localStream;
     try {
         localStream = await navigator.mediaDevices.getDisplayMedia({
-            video: {frameRate: {ideal: 60}}
+            video: {frameRate: {ideal: 60, cursor: 'never'}}
         });
         for (const track of localStream.getTracks()) {
             pc_.addTrack(track, localStream);
