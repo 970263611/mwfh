@@ -236,6 +236,10 @@ ipcMain.on('minimize', () => {
     win.minimize()
 })
 
+ipcMain.on('unmaximize', () => {
+    win.unmaximize()
+})
+
 function getMac() {
     const interfaces = os.networkInterfaces();
     // 虚拟网卡关键词，用于排除

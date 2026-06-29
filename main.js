@@ -95,6 +95,15 @@ app.on('window-all-closed', () => {
     }
 })
 
+app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow()
+    } else {
+        win.show()
+        win.focus()
+    }
+})
+
 function createTray() {
     tray = new Tray(getIcon('small'))
     const contextMenu = Menu.buildFromTemplate([

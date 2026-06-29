@@ -183,6 +183,7 @@ async function peerClose(peer) {
     } catch (err) {
         pushLog("系统", `RTC关闭异常: ${err.message}`, "log-err");
     }
+    window.ea.unmaximize()
 }
 
 // 对外发送dc消息
