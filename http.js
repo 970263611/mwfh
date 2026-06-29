@@ -73,7 +73,7 @@ const server = http.createServer((req, res) => {
                 const trace = {
                     "time": new Date().toLocaleString('zh-CN'),
                     "target": targetName,
-                    "msg": `收到RTC指令：${JSON.stringify(rtcData)}`,
+                    "msg": `收到RTC[${type}]指令：${JSON.stringify(rtcData)}`,
                     "type": "log-succ"
                 }
                 win.webContents.send('trace-show', trace)

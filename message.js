@@ -223,6 +223,10 @@ ipcMain.on('callbackViewNode', async (event, node, data) => {
     })
 })
 
+ipcMain.on('minimize', () => {
+    win.minimize()
+})
+
 function getMac() {
     const interfaces = os.networkInterfaces();
     // 虚拟网卡关键词，用于排除

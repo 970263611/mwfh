@@ -52,16 +52,36 @@ app.whenReady().then(async () => {
         const dockIconPath = getIcon()
         app.dock.setIcon(dockIconPath)
     }
+
     session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
-        desktopCapturer.getSources({types: ['screen']}).then((sources) => {
-            // Grant access to the first screen found.
-            callback({video: sources[0], audio: 'loopback'})
-        })
-        // If true, use the system picker if available.
-        // Note: this is currently experimental. If the system picker
-        // is available, it will be used and the media request handler
-        // will not be invoked.
-    }, {useSystemPicker: true})
+        // 不用 async 包裹回调，避免异步时序导致的先抛后 catch 警告
+        desktopCapturer.getSources({types: ['screen']})
+            .then(sources => {
+                if (!Array.isArray(sources) || sources.length === 0) {
+                    const trace = {
+                        "time": new Date().toLocaleString('zh-CN'),
+                        "target": '系统',
+                        "msg": `无可用屏幕源，拒绝录屏`,
+                        "type": "log-err"
+                    }
+                    win.webContents.send('trace-show', trace)
+                    return callback(null)
+                }
+                // 只传 video，完全移除 audio 字段，杜绝loopback兼容故障
+                callback({video: sources[0]})
+            })
+            .catch(err => {
+                const trace = {
+                    "time": new Date().toLocaleString('zh-CN'),
+                    "target": '系统',
+                    "msg": 'desktopCapturer 获取屏幕失败：' + err.message,
+                    "type": "log-err"
+                }
+                win.webContents.send('trace-show', trace)
+                // 异常必须回调 null 终止媒体请求，防止渲染进程卡死
+                callback(null)
+            })
+    }, {useSystemPicker: false})
 })
 
 //mac兼容

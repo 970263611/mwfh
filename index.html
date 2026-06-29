@@ -116,22 +116,62 @@
             border-radius: var(--radius-full);
         }
 
-        /* 视频预览容器 */
-        .video-preview {
-            width: 100%;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background: var(--apple-dark-bg);
+        /* ========== 全屏观看遮罩（我看别人） ========== */
+        .watch-full-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+        }
+
+        .watch-full-screen.show {
+            display: flex;
+        }
+
+        .watch-video-box {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .video-preview video {
+
+        .watch-video-box video {
             width: 100%;
-            height: auto;
-            max-height: 120px;
-            object-fit: cover;
-            display: block;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .watch-bottom-bar {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        /* ========== 全屏被控遮罩（别人看我） ========== */
+        .controlled-full-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .controlled-full-screen.show {
+            display: flex;
+        }
+
+        .controlled-tip-text {
+            color: #fff;
+            font-size: 28px;
+            text-align: center;
         }
 
         .node-list {
@@ -674,13 +714,9 @@
             <div class="log-box" id="logBox"></div>
         </div>
 
-        <!-- 右侧：节点配置 -->
+        <!-- 右侧：节点配置（已移除原video-preview） -->
         <div class="card node-card">
             <div class="card-title">节点配置</div>
-            <!-- 视频预览区域 -->
-            <div class="video-preview">
-                <video autoplay muted playsinline></video>
-            </div>
             <button class="btn btn-primary" onclick="openNodeModal()">+ 添加节点</button>
             <div class="node-list" id="nodeList"></div>
         </div>
@@ -688,6 +724,22 @@
 
     <!-- 右下角设置按钮 -->
     <button class="setting-btn" onclick="openSettingModal()">⚙︎</button>
+
+    <!-- ========== 全屏模式1：我观看别人（主控全屏视频） ========== -->
+    <div class="watch-full-screen" id="watchScreenMask">
+        <div class="watch-video-box">
+            <video id="remoteWatchVideo" autoplay muted playsinline></video>
+        </div>
+        <div class="watch-bottom-bar">
+            <button class="btn btn-danger" onclick="disconnectWatch()">断开连接</button>
+        </div>
+    </div>
+
+    <!-- ========== 全屏模式2：别人观看我（被控提示页） ========== -->
+    <div class="controlled-full-screen" id="controlledScreenMask">
+        <div class="controlled-tip-text" id="controlledTipText">XXX节点正在控制你的设备</div>
+        <button class="btn btn-danger" onclick="disconnectControlled()">断开对方连接</button>
+    </div>
 
     <!-- 节点弹窗 -->
     <div class="modal" id="nodeModal">
@@ -754,12 +806,24 @@
         </div>
     </div>
 </div>
-
-<!-- 外部脚本统一放在 body 末尾 -->
 <script src="./webrtc.js"></script>
-<script src="./renderer.js"></script>
-
 <script>
+
+    window.ea.onTraceShow((trace) => {
+        window.ea.addTrace(trace)
+        renderLog()
+    })
+
+    window.ea.rtcRecv(async (payload) => {
+        const rtc = JSON.parse(payload)
+        await handleRemoteOffer(rtc.name, rtc.addr, rtc.secret, JSON.parse(rtc.data))
+    })
+
+    window.ea.rtcCallback(async (payload) => {
+        const rtc = JSON.parse(payload)
+        await handleRemoteAnswer(JSON.parse(rtc.data))
+    })
+
     let nodeData;
     let saveFolderPath;
     let currentNodeName;
@@ -767,6 +831,7 @@
     let logData;
     let selectedFileList = null;
     let publicIpv6 = ""; // 公网IPv6全局变量
+    let currentWatchTarget = null; // 当前正在观看的节点对象
 
     // 密码显示隐藏切换函数
     function togglePwd(inputId) {
@@ -782,13 +847,13 @@
     }
 
     (async () => {
-        nodeData = await getNodes();
-        saveFolderPath = await getSaveFolderPath();
-        currentNodeName = await getCurrentNodeName();
-        secretKey = await getMySecret();
-        logData = await getTraces();
+        nodeData = await window.ea.getNodes()
+        saveFolderPath = await window.ea.getSaveFolderPath()
+        currentNodeName = await window.ea.getNodeName()
+        secretKey = await window.ea.getMySecret()
+        logData = await window.ea.getTraces()
         // 获取公网IPv6赋值到输入框
-        publicIpv6 = await getPublicIPv6();
+        publicIpv6 = await window.ea.getPublicIPv6();
         document.getElementById("publicIpv6Input").value = '[' + publicIpv6 + ']';
         document.getElementById("savePathInput").value = saveFolderPath;
         document.getElementById("currentNodeNameInput").value = currentNodeName;
@@ -855,7 +920,7 @@
         const tip = document.getElementById("fileTip");
 
         wrap.onclick = async () => {
-            upload_files()
+            window.ea.selectFiles()
                 .then(filePaths => {
                     if (filePaths && filePaths.length) {
                         selectedFileList = filePaths;
@@ -929,13 +994,21 @@
 
         const idx = nodeData.findIndex(i => i.name === nname);
         if (idx != -1) {
-            updateNode(nname, naddr, nsecret);
+            window.ea.updateNode({
+                name: nname,
+                addr: naddr,
+                secret: nsecret
+            })
             pushLog("系统", "更新节点：" + nname, "log-info");
         } else {
-            addNode(nname, naddr, nsecret);
+            window.ea.addNode({
+                name: nname,
+                addr: naddr,
+                secret: nsecret
+            })
             pushLog("系统", "新增节点：" + nname, "log-succ");
         }
-        nodeData = await getNodes();
+        nodeData = await window.ea.getNodes()
         renderNode();
         closeNodeModal();
     }
@@ -944,18 +1017,57 @@
     async function deleteNode(name) {
         const item = nodeData.find(i => i.name === name);
         if (!confirm("确认删除节点【" + item.name + "】？")) return;
-        delNode(item.name);
-        nodeData = await getNodes();
+        window.ea.delNode({
+            name: item.name
+        })
+        nodeData = await window.ea.getNodes()
         renderNode();
         pushLog("系统", "已删除节点：" + item.name, "log-warn");
     }
 
-    // 查看节点详情
+    // ========== 模式1：我观看别人（全屏视频） ==========
     function viewOtherNode(nodeObj) {
-        pushLog("系统", `查看节点【${nodeObj.name}】信息，地址：${nodeObj.addr}`, "log-info");
-        viewOtherNodeFromMain(nodeObj)
+        currentWatchTarget = nodeObj;
+        // 显示全屏观看遮罩
+        document.getElementById("watchScreenMask").classList.add("show");
+        pushLog("系统", `进入全屏观看节点【${nodeObj.name}】，地址：${nodeObj.addr}`, "log-info");
+        // 此处调用webrtc建立拉流，把远端流赋值给 #remoteWatchVideo
+        startRtc(nodeObj, document.getElementById('remoteWatchVideo'))
     }
-    // 控制节点
+
+    // 断开观看（我看别人）
+    function disconnectWatch() {
+        const mask = document.getElementById("watchScreenMask");
+        const video = document.getElementById("remoteWatchVideo");
+        // 停止视频流
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(t => t.stop());
+            video.srcObject = null;
+        }
+        mask.classList.remove("show");
+        pushLog("系统", `已断开与节点【${currentWatchTarget?.name}】的观看连接`, "log-succ");
+        currentWatchTarget = null;
+        rtcPcClose()
+    }
+
+    // ========== 模式2：别人控制我（全屏提示） ==========
+    // 外部webrtc收到远端接入时调用此函数，传入对方节点名
+    function enterControlledMode(remoteNodeName) {
+        document.getElementById("controlledTipText").innerText = `${remoteNodeName} 正在控制你的设备`;
+        document.getElementById("controlledScreenMask").classList.add("show");
+        pushLog("系统", `警告：节点【${remoteNodeName}】正在远程控制本机`, "log-succ");
+    }
+
+    // 断开被控连接，踢掉对方
+    function disconnectControlled() {
+        const mask = document.getElementById("controlledScreenMask");
+        mask.classList.remove("show");
+        pushLog("系统", "已主动断开远程控制连接", "log-succ");
+        // 通知主进程关闭所有peer连接
+        rtcPc_Close();
+    }
+
+    // 控制节点（仅通道，不进全屏观看）
     function controlNode(nodeObj) {
         pushLog("系统", `进入节点【${nodeObj.name}】控制通道`, "log-succ");
         // 这里可自行扩展控制逻辑
@@ -989,12 +1101,12 @@
     function pushLog(target, msg, type = "log-info") {
         const trace = {time: new Date().toLocaleString('zh-CN'), target, msg, type};
         if (logData.length > 200) logData.length = 200;
-        addTrace(trace);
+        window.ea.addTrace(trace)
         renderLog();
     }
 
     function renderLog() {
-        getTraces()
+        window.ea.getTraces()
             .then(traces => {
                 logData = traces;
                 const box = document.getElementById("logBox");
@@ -1025,7 +1137,7 @@
 
     function clearLog() {
         if (!confirm("清空全部日志？")) return;
-        clearTrace();
+        window.ea.clearTrace()
         renderLog();
         pushLog("系统", "日志已全部清空", "log-warn");
     }
@@ -1034,7 +1146,7 @@
     function sendText() {
         const text = document.getElementById("msgInput").value.trim();
         if (!text) return pushLog("系统", "请输入文字内容", "log-err");
-        sendT(text);
+        window.ea.sendT(text)
         pushLog("本地", "发送文本：" + text, "log-succ");
         document.getElementById("msgInput").value = "";
     }
@@ -1045,7 +1157,7 @@
             return pushLog("系统", "请选择上传文件", "log-err");
         }
         for (let f of selectedFileList) {
-            sendF(f);
+            window.ea.sendF(f)
             pushLog("本地", `上传文件：${f}`, "log-succ");
         }
         document.getElementById("fileInput").value = "";
@@ -1068,7 +1180,7 @@
 
     // 选择文件夹
     async function selectSaveFolder() {
-        select_folder()
+        window.ea.selectSaveFolder()
             .then(folderPath => {
                 if (folderPath && folderPath.length > 0) {
                     document.getElementById("savePathInput").value = folderPath;
@@ -1098,9 +1210,9 @@
         currentNodeName = nodeName;
         secretKey = key;
 
-        saveFolderPathToMain(saveFolderPath);
-        saveCurrentNodeNameToMain(currentNodeName);
-        saveMySecretToMain(secretKey);
+        window.ea.saveFolderPath(saveFolderPath);
+        window.ea.saveNodeName(currentNodeName);
+        window.ea.saveMySecret(secretKey);
 
         pushLog("系统", "配置已保存：节点名称「" + currentNodeName + "」，保存路径「" + saveFolderPath + "」，全局密钥已更新", "log-succ");
         closeSettingModal();
