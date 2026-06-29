@@ -40,6 +40,8 @@ contextBridge.exposeInMainWorld('ea', {
 
     minimize: () => ipcRenderer.send('minimize'),
 
+    rtcExit: (callback) => ipcRenderer.on('rtc-exit', () => callback()),
+
     // 绑定拖拽区域，拖拽完成后返回绝对路径数组
     bindDropArea: (elementId) => {
         const el = document.getElementById(elementId);

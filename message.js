@@ -180,19 +180,20 @@ ipcMain.on('viewOtherNode', async (event, node, data) => {
     }).then(() => {
         const trace = {
             "time": new Date().toLocaleString('zh-CN'),
-            "target": addr,
-            "msg": '[' + node.addr + '] ' + '查看屏幕请求成功',
+            "target": '系统',
+            "msg": '[' + node.name + '] ' + '查看屏幕请求成功',
             "type": "log-succ"
         }
         win.webContents.send('trace-show', trace)
     }).catch(err => {
         const trace = {
             "time": new Date().toLocaleString('zh-CN'),
-            "target": '错误',
-            "msg": '[' + node.addr + '] ' + err.message,
+            "target": '系统',
+            "msg": '[' + node.name + '] ' + err.message,
             "type": "log-err"
         }
         win.webContents.send('trace-show', trace)
+        win.webContents.send('rtc-exit')
     })
 })
 
@@ -224,8 +225,11 @@ ipcMain.on('callbackViewNode', async (event, node, data) => {
 })
 
 ipcMain.on('maximize', () => {
-    // win.maximize()
-    win.setFullScreen(true)
+    if (process.platform === 'darwin') {
+        win.setFullScreen(true)
+    } else {
+        win.maximize()
+    }
 })
 
 ipcMain.on('minimize', () => {

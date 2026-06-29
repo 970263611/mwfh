@@ -3,24 +3,16 @@ let dc
 let pc_
 let dc_
 
-// 收集全部ICE候选，5秒超时兜底
+// 收集全部ICE候选
 function waitAllIceComplete(pc) {
-    return new Promise((resolve) => {
-        const allCandidates = [];
-        const timer = setTimeout(() => {
-            pushLog('系统', 'ICE收集超时，返回当前已收集候选', 'log-warn')
-            resolve({sdp: pc.localDescription, candidates: allCandidates});
-        }, 5000);
-
-        pc.onicecandidate = (e) => {
-            if (e.candidate) {
-                allCandidates.push(e.candidate);
-            } else {
-                clearTimeout(timer);
-                resolve({sdp: pc.localDescription, candidates: allCandidates});
-            }
-        };
-    });
+    const allCandidates = []
+    pc.onicecandidate = (e) => {
+        if (e.candidate) {
+            allCandidates.push(e.candidate);
+        } else {
+            return {sdp: pc.localDescription, candidates: allCandidates}
+        }
+    };
 }
 
 // ========== 发起方（只接收对方屏幕，不发送本地流） ==========
@@ -36,6 +28,16 @@ async function startRtc(node, videoDom) {
         // 对方断开、网络失败、连接关闭
         if (state === 'disconnected' || state === 'failed' || state === 'closed') {
             disconnectWatch(); // 执行断开逻辑：清视频、关闭遮罩、销毁peer
+        } else {
+            // 数据通道
+            // dc = pc.createDataChannel("mwfh");
+            // dc.onopen = () => {
+            //     pushLog('系统', '纯WebRTC数据通道建立成功', 'log-succ')
+            // }
+            // dc.onmessage = (ev) => console.log("收到DC消息:", ev.data)
+            // dc.onerror = (err) => {
+            //     pushLog('系统', 'RTC数据通道异常：' + err.message, 'log-err')
+            // }
         }
     };
 
@@ -53,20 +55,10 @@ async function startRtc(node, videoDom) {
         });
     };
 
-    // 数据通道
-    dc = pc.createDataChannel("mwfh");
-    dc.onopen = () => {
-        pushLog('系统', '纯WebRTC数据通道建立成功', 'log-succ')
-    }
-    dc.onmessage = (ev) => console.log("收到DC消息:", ev.data)
-    dc.onerror = (err) => {
-        pushLog('系统', 'RTC数据通道异常：' + err.message, 'log-err')
-    }
-
     // 发起方不添加任何本地媒体轨道
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    const signalData = await waitAllIceComplete(pc);
+    const signalData = waitAllIceComplete(pc);
     window.ea.viewOtherNode(node, JSON.stringify(signalData));
 }
 
@@ -95,10 +87,10 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
         }
     };
 
-    pc_.ondatachannel = (e) => {
-        dc_ = e.channel;
-        dc_.onmessage = (ev) => console.log("应答方DC收到消息：", ev.data);
-    };
+    // pc_.ondatachannel = (e) => {
+    //     dc_ = e.channel;
+    //     dc_.onmessage = (ev) => console.log("应答方DC收到消息：", ev.data);
+    // };
 
     // 1. 载入对方Offer与ICE候选
     await pc_.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -123,7 +115,7 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     // 3. 生成Answer
     const answer = await pc_.createAnswer();
     await pc_.setLocalDescription(answer);
-    const signalData = await waitAllIceComplete(pc_);
+    const signalData = waitAllIceComplete(pc_);
 
     window.ea.callbackViewNode({
         name: name,
@@ -136,12 +128,12 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     window.ea.minimize()
 }
 
-async function rtcPcClose() {
-    await peerClose(pc)
+function rtcPcClose() {
+    peerClose(pc).then()
 }
 
 async function rtcPc_Close() {
-    await peerClose(pc_)
+    peerClose(pc_).then()
 }
 
 /**
@@ -152,12 +144,13 @@ async function peerClose(peer) {
     if (!peer) return;
 
     try {
-        // 阶段1：同步关闭所有DataChannel、释放媒体轨道
+        // 同步关闭所有DataChannel、释放媒体轨道
         const dcList = peer.dataChannels ? [...peer.dataChannels] : [];
         for (const dc of dcList) {
             try {
                 if (dc.readyState !== "closed") dc.close();
-            } catch (e) {}
+            } catch (e) {
+            }
         }
 
         // 停止发送轨道（本机屏幕/摄像头）
@@ -165,20 +158,19 @@ async function peerClose(peer) {
             try {
                 if (sender.track) sender.track.stop();
                 sender.replaceTrack(null);
-            } catch (e) {}
+            } catch (e) {
+            }
         });
 
         // 停止接收远端视频轨道
         peer.getReceivers().forEach(receiver => {
             try {
                 if (receiver.track) receiver.track.stop();
-            } catch (e) {}
+            } catch (e) {
+            }
         });
 
-        // 阶段2：微任务等待SCTP下发关闭报文，再销毁Peer，隔离DTLS报错
-        await new Promise(resolve => setTimeout(resolve, 80));
-
-        // 阶段3：最后关闭连接
+        // 最后关闭连接
         peer.close();
     } catch (err) {
         pushLog("系统", `RTC关闭异常: ${err.message}`, "log-err");

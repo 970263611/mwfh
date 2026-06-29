@@ -443,7 +443,7 @@ function start(mainWin, mainDb, mainArgs) {
         }
         setTimeout(() => {
             win.webContents.send('trace-show', trace)
-        }, 5000);
+        }, 3000);
     })
 }
 
