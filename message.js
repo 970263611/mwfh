@@ -237,7 +237,11 @@ ipcMain.on('minimize', () => {
 })
 
 ipcMain.on('unmaximize', () => {
-    win.unmaximize()
+    if (process.platform === 'darwin') {
+        win.setFullScreen(false)
+    } else {
+        win.unmaximize()
+    }
 })
 
 function getMac() {
