@@ -5,14 +5,22 @@ let dc_
 
 // 收集全部ICE候选
 function waitAllIceComplete(pc) {
-    const allCandidates = []
-    pc.onicecandidate = (e) => {
-        if (e.candidate) {
-            allCandidates.push(e.candidate);
-        } else {
-            return {sdp: pc.localDescription, candidates: allCandidates}
-        }
-    };
+    return new Promise((resolve) => {
+        const allCandidates = [];
+        const timer = setTimeout(() => {
+            pushLog('系统', 'ICE收集超时，返回当前已收集候选', 'log-warn')
+            resolve({sdp: pc.localDescription, candidates: allCandidates});
+        }, 5000);
+
+        pc.onicecandidate = (e) => {
+            if (e.candidate) {
+                allCandidates.push(e.candidate);
+            } else {
+                clearTimeout(timer);
+                resolve({sdp: pc.localDescription, candidates: allCandidates});
+            }
+        };
+    });
 }
 
 // ========== 发起方（只接收对方屏幕，不发送本地流） ==========
@@ -58,7 +66,7 @@ async function startRtc(node, videoDom) {
     // 发起方不添加任何本地媒体轨道
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    const signalData = waitAllIceComplete(pc);
+    const signalData = await waitAllIceComplete(pc);
     window.ea.viewOtherNode(node, JSON.stringify(signalData));
 }
 
@@ -115,7 +123,7 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     // 3. 生成Answer
     const answer = await pc_.createAnswer();
     await pc_.setLocalDescription(answer);
-    const signalData = waitAllIceComplete(pc_);
+    const signalData = await waitAllIceComplete(pc_);
 
     window.ea.callbackViewNode({
         name: name,
