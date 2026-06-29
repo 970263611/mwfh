@@ -1,12 +1,14 @@
 let pc
+let dc
 let pc_
+let dc_
 
 // 收集全部ICE候选，5秒超时兜底
 function waitAllIceComplete(pc) {
     return new Promise((resolve) => {
         const allCandidates = [];
         const timer = setTimeout(() => {
-            console.warn("ICE收集超时，返回当前已收集候选");
+            pushLog('系统', 'ICE收集超时，返回当前已收集候选', 'log-warn')
             resolve({sdp: pc.localDescription, candidates: allCandidates});
         }, 5000);
 
@@ -43,17 +45,23 @@ async function startRtc(node, videoDom) {
     // 接收远端视频轨道
     const remoteStream = new MediaStream();
     pc.ontrack = (e) => {
-        console.log("✅ 收到远端轨道", e.track.kind);
+        pushLog('系统', '收到远端轨道' + e.track.kind, 'log-succ')
         remoteStream.addTrack(e.track);
         videoDom.srcObject = remoteStream;
-        videoDom.play().catch(err => console.error("视频播放失败：", err));
+        videoDom.play().catch(err => {
+            pushLog('系统', 'RTC播放异常：' + err.message, 'log-err')
+        });
     };
 
     // 数据通道
-    const dc = pc.createDataChannel("mwfh");
-    dc.onopen = () => console.log("✅ 纯WebRTC数据通道建立成功");
-    dc.onmessage = (ev) => console.log("收到DC消息:", ev.data);
-    dc.onerror = (err) => console.error("DC异常：", err);
+    dc = pc.createDataChannel("mwfh");
+    dc.onopen = () => {
+        pushLog('系统', '纯WebRTC数据通道建立成功', 'log-succ')
+    }
+    dc.onmessage = (ev) => console.log("收到DC消息:", ev.data)
+    dc.onerror = (err) => {
+        pushLog('系统', 'RTC数据通道异常：' + err.message, 'log-err')
+    }
 
     // 发起方不添加任何本地媒体轨道
     const offer = await pc.createOffer();
@@ -88,8 +96,8 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     };
 
     pc_.ondatachannel = (e) => {
-        const dc = e.channel;
-        dc.onmessage = (ev) => console.log("应答方DC收到消息：", ev.data);
+        dc_ = e.channel;
+        dc_.onmessage = (ev) => console.log("应答方DC收到消息：", ev.data);
     };
 
     // 1. 载入对方Offer与ICE候选
@@ -104,7 +112,6 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
         localStream = await navigator.mediaDevices.getDisplayMedia({
             video: {frameRate: {ideal: 60}}
         });
-        console.log("本地轨道数量：", localStream.getTracks().length);
         for (const track of localStream.getTracks()) {
             pc_.addTrack(track, localStream);
         }
@@ -115,7 +122,6 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
 
     // 3. 生成Answer
     const answer = await pc_.createAnswer();
-    console.log("Answer SDP内容：", answer.sdp);
     await pc_.setLocalDescription(answer);
     const signalData = await waitAllIceComplete(pc_);
 
@@ -130,12 +136,12 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     window.ea.minimize()
 }
 
-function rtcPcClose() {
-    peerClose(pc)
+async function rtcPcClose() {
+    await peerClose(pc)
 }
 
-function rtcPc_Close() {
-    peerClose(pc_)
+async function rtcPc_Close() {
+    await peerClose(pc_)
 }
 
 /**
@@ -176,5 +182,21 @@ async function peerClose(peer) {
         peer.close();
     } catch (err) {
         pushLog("系统", `RTC关闭异常: ${err.message}`, "log-err");
+    }
+}
+
+// 对外发送dc消息
+function sendDCMessage(channel, data) {
+    // 校验通道状态，必须open才能发
+    if (!channel || channel.readyState !== "open") {
+        pushLog("系统", "数据通道未打开，发送失败", "log-err");
+    } else {
+        try {
+            // 对象转字符串发送，dc只支持字符串/二进制
+            const msg = typeof data === "string" ? data : JSON.stringify(data);
+            channel.send(msg);
+        } catch (err) {
+            pushLog("系统", "发送DC消息异常：" + err.message, "log-err");
+        }
     }
 }
