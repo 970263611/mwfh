@@ -116,7 +116,7 @@
             border-radius: var(--radius-full);
         }
 
-        /* ========== 全屏观看遮罩（我看别人） ========== */
+        /* ========== 全屏观看遮罩（我看别人）【修复最大化适配】 ========== */
         .watch-full-screen {
             position: fixed;
             inset: 0;
@@ -124,6 +124,9 @@
             z-index: 999;
             display: none;
             flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .watch-full-screen.show {
@@ -131,24 +134,35 @@
         }
 
         .watch-video-box {
-            flex: 1;
+            flex: 1 1 auto;
+            width: 100%;
+            height: calc(100% - 70px);
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 0;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .watch-video-box video {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
+            min-width: 400px;
+            min-height: 300px;
+            transform-origin: center center;
         }
 
         .watch-bottom-bar {
+            flex: 0 0 70px;
+            width: 100%;
             height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: rgba(0, 0, 0, 0.6);
+            flex-shrink: 0;
         }
 
         /* ========== 全屏被控遮罩（别人看我） ========== */
@@ -1025,12 +1039,21 @@
         pushLog("系统", "已删除节点：" + item.name, "log-warn");
     }
 
-    // ========== 模式1：我观看别人（全屏视频） ==========
+    // ========== 模式1：我观看别人（全屏视频）【修复最大化渲染】 ==========
     function viewOtherNode(nodeObj) {
         currentWatchTarget = nodeObj;
         // 显示全屏观看遮罩
-        document.getElementById("watchScreenMask").classList.add("show");
+        const mask = document.getElementById("watchScreenMask");
+        mask.classList.add("show");
         pushLog("系统", `进入全屏观看节点【${nodeObj.name}】，地址：${nodeObj.addr}`, "log-info");
+        // 延迟重绘，解决Electron最大化初次渲染拉伸
+        setTimeout(() => {
+            const video = document.getElementById('remoteWatchVideo');
+            video.style.width = '99.99%';
+            requestAnimationFrame(() => {
+                video.style.width = '100%';
+            })
+        }, 50);
         // 此处调用webrtc建立拉流，把远端流赋值给 #remoteWatchVideo
         startRtc(nodeObj, document.getElementById('remoteWatchVideo'))
     }
@@ -1235,6 +1258,32 @@
             pushLog("系统", "无法打开文件位置，请检查环境配置", "log-err");
         }
     }
+
+    // 监听窗口缩放/最大化，修复观看全屏画面适配
+    window.addEventListener('resize', () => {
+        const watchMask = document.getElementById('watchScreenMask');
+        const video = document.getElementById('remoteWatchVideo');
+        if (watchMask.classList.contains('show') && video) {
+            video.style.width = '99.99%';
+            setTimeout(() => {
+                video.style.width = '100%';
+            }, 20);
+        }
+    });
+
+    // ESC快捷键退出全屏观看/被控模式
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const watchMask = document.getElementById('watchScreenMask');
+            const ctrlMask = document.getElementById('controlledScreenMask');
+            if (watchMask.classList.contains('show')) {
+                disconnectWatch();
+            }
+            if (ctrlMask.classList.contains('show')) {
+                disconnectControlled();
+            }
+        }
+    })
 </script>
 </body>
 </html>

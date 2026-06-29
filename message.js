@@ -223,6 +223,11 @@ ipcMain.on('callbackViewNode', async (event, node, data) => {
     })
 })
 
+ipcMain.on('maximize', () => {
+    // win.maximize()
+    win.setFullScreen(true)
+})
+
 ipcMain.on('minimize', () => {
     win.minimize()
 })

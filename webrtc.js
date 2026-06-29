@@ -68,6 +68,7 @@ async function handleRemoteAnswer({sdp, candidates}) {
     for (const cand of candidates) {
         await pc.addIceCandidate(new RTCIceCandidate(cand));
     }
+    window.ea.maximize()
 }
 
 // ========== 应答方（收到Offer，采集本机屏幕发给发起方） ==========
@@ -138,52 +139,42 @@ function rtcPc_Close() {
 }
 
 /**
- * 安全完整关闭RTCPeerConnection，无资源泄漏、减少底层报错日志
- * @param {RTCPeerConnection|null} peer - 要关闭的peer实例
+ * 分层异步关闭Peer，消除DtlsTransport报错，最小化SCTP abort日志
+ * @param {RTCPeerConnection|null} peer
  */
-function peerClose(peer) {
+async function peerClose(peer) {
     if (!peer) return;
 
     try {
-        // 1. 关闭所有出站DataChannel（主动创建的通道）
-        const dataChannels = peer.createDataChannel ? [peer.createDataChannel] : [];
-        // 兼容远端主动创建的通道监听集合
-        const dcList = dataChannels || [];
-        [...dcList].forEach(dc => {
+        // 阶段1：同步关闭所有DataChannel、释放媒体轨道
+        const dcList = peer.dataChannels ? [...peer.dataChannels] : [];
+        for (const dc of dcList) {
             try {
-                if (dc.readyState !== "closed") {
-                    dc.close();
-                }
-            } catch (_) {
-            }
-        });
+                if (dc.readyState !== "closed") dc.close();
+            } catch (e) {}
+        }
 
-        // 2. 停止所有本地发送轨道（本机屏幕/摄像头推流）
+        // 停止发送轨道（本机屏幕/摄像头）
         peer.getSenders().forEach(sender => {
-            const track = sender.track;
-            if (track) {
-                try {
-                    track.stop();
-                    sender.replaceTrack(null);
-                } catch (_) {
-                }
-            }
+            try {
+                if (sender.track) sender.track.stop();
+                sender.replaceTrack(null);
+            } catch (e) {}
         });
 
-        // 3. 停止所有远端接收轨道（对方视频画面）
+        // 停止接收远端视频轨道
         peer.getReceivers().forEach(receiver => {
-            const track = receiver.track;
-            if (track) {
-                try {
-                    track.stop();
-                } catch (_) {
-                }
-            }
+            try {
+                if (receiver.track) receiver.track.stop();
+            } catch (e) {}
         });
 
-        // 4. 终止ICE收集，释放网络端口
+        // 阶段2：微任务等待SCTP下发关闭报文，再销毁Peer，隔离DTLS报错
+        await new Promise(resolve => setTimeout(resolve, 80));
+
+        // 阶段3：最后关闭连接
         peer.close();
     } catch (err) {
-        pushLog("系统", `断开RTC错误` + err.message, "log-err");
+        pushLog("系统", `RTC关闭异常: ${err.message}`, "log-err");
     }
 }

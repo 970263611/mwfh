@@ -36,6 +36,8 @@ contextBridge.exposeInMainWorld('ea', {
 
     callbackViewNode: (node, data) => ipcRenderer.send('callbackViewNode', node, data),
 
+    maximize: () => ipcRenderer.send('maximize'),
+
     minimize: () => ipcRenderer.send('minimize'),
 
     // 绑定拖拽区域，拖拽完成后返回绝对路径数组
