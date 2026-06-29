@@ -236,6 +236,10 @@ ipcMain.on('minimize', () => {
     win.minimize()
 })
 
+ipcMain.on('restore', () => {
+    win.restore()
+})
+
 ipcMain.on('unmaximize', () => {
     if (process.platform === 'darwin') {
         win.setFullScreen(false)

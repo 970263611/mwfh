@@ -42,6 +42,8 @@ contextBridge.exposeInMainWorld('ea', {
 
     unmaximize: () => ipcRenderer.send('unmaximize'),
 
+    restore: () => ipcRenderer.send('restore'),
+
     rtcExit: (callback) => ipcRenderer.on('rtc-exit', () => callback()),
 
     // 绑定拖拽区域，拖拽完成后返回绝对路径数组

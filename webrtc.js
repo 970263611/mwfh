@@ -137,11 +137,15 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
 }
 
 function rtcPcClose() {
-    peerClose(pc).then()
+    peerClose(pc).then(() => {
+        window.ea.unmaximize()
+    })
 }
 
 async function rtcPc_Close() {
-    peerClose(pc_).then()
+    peerClose(pc_).then(() => {
+        window.ea.restore()
+    })
 }
 
 /**
@@ -183,7 +187,6 @@ async function peerClose(peer) {
     } catch (err) {
         pushLog("系统", `RTC关闭异常: ${err.message}`, "log-err");
     }
-    window.ea.unmaximize()
 }
 
 // 对外发送dc消息

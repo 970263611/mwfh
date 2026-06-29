@@ -41,6 +41,7 @@ const createWindow = () => {
         // 隐藏窗口，后台运行
         win.hide()
     })
+    win.focus()
 }
 
 app.whenReady().then(async () => {
