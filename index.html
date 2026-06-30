@@ -116,7 +116,7 @@
             border-radius: var(--radius-full);
         }
 
-        /* ========== 全屏观看遮罩（我看别人）【优化悬浮控制栏】 ========== */
+        /* ========== 全屏观看遮罩（我看别人）【彻底移除底部黑色遮罩】 ========== */
         .watch-full-screen {
             position: fixed;
             inset: 0;
@@ -153,22 +153,28 @@
             min-width: 400px;
             min-height: 300px;
             transform-origin: center center;
+            display: block;
+            background: transparent;
         }
 
-        /* 底部滑出控制栏：仅保留容器，移除按钮 */
+        /* 底部滑出控制栏：完全透明，无黑色遮罩，悬浮不遮挡画面 */
         .watch-bottom-bar {
             position: absolute;
             left: 0;
             right: 0;
             bottom: 0;
+            width: 100%;
             height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
-            flex-shrink: 0;
+            background: transparent; /* 核心：清除黑色渐变 */
             transform: translateY(100%);
             transition: transform 0.3s ease;
+            pointer-events: none; /* 鼠标穿透，不阻断远程操作 */
+        }
+        .watch-bottom-bar > * {
+            pointer-events: auto;
         }
 
         /* 鼠标进入视频区域弹出底部栏 */
@@ -796,7 +802,7 @@
     <!-- 右下角设置按钮 -->
     <button class="setting-btn" onclick="openSettingModal()">⚙︎</button>
 
-    <!-- ========== 全屏模式1：我观看别人（主控全屏视频）【改造后】 ========== -->
+    <!-- ========== 全屏模式1：我观看别人（主控全屏视频） ========== -->
     <div class="watch-full-screen" id="watchScreenMask">
         <div class="watch-video-box">
             <video id="remoteWatchVideo" autoplay muted playsinline></video>
@@ -804,7 +810,7 @@
             <div class="watch-float-exit">
                 <button class="btn btn-sm btn-danger" onclick="disconnectWatch()">断开连接</button>
             </div>
-            <!-- 底部滑出栏清空，无按钮 -->
+            <!-- 底部滑出栏，背景完全透明无黑色遮罩 -->
             <div class="watch-bottom-bar"></div>
         </div>
     </div>
@@ -1104,7 +1110,7 @@
         pushLog("系统", "已删除节点：" + item.name, "log-warn");
     }
 
-    // ========== 模式1：我观看别人（全屏视频）【修复最大化渲染】 ==========
+    // ========== 模式1：我观看别人（全屏视频） ==========
     function viewOtherNode(nodeObj) {
         currentWatchTarget = nodeObj;
         // 显示全屏观看遮罩

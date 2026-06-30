@@ -267,7 +267,6 @@ ipcMain.on('unmaximize', () => {
 
 ipcMain.on('monitorInput', (event, payload) => {
     robot.play(JSON.parse(payload))
-    console.log(payload)
 })
 
 function getMac() {
