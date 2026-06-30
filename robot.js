@@ -6,6 +6,7 @@ let player
 
 class MouseKeyboardPlayer {
     constructor() {
+        this.renderTimer = null;
         this.#updateScreenInfo();
         this.masterScreen = { w: 0, h: 0 };
 
@@ -32,7 +33,7 @@ class MouseKeyboardPlayer {
         this.lastRenderTs = Date.now();
 
         this.screenChangeTimer = setInterval(() => this.#updateScreenInfo(), 1000);
-        // 启动鼠标持续渲染循环
+        // 启动鼠标持续渲染循环（Node定时器替代raf，修复主进程报错）
         this.#startMouseRenderLoop();
     }
 
@@ -104,10 +105,13 @@ class MouseKeyboardPlayer {
         }
     }
 
-    // 持续渲染循环，统一调度鼠标移动，避免频繁robotjs阻塞
+    // Node主进程专用渲染循环，setInterval替代requestAnimationFrame
     #startMouseRenderLoop() {
-        const render = () => {
-            if (this.renderLock) return requestAnimationFrame(render);
+        // 60帧刷新率，等价浏览器raf
+        const FPS = 60;
+        const intervalMs = Math.round(1000 / FPS);
+        this.renderTimer = setInterval(() => {
+            if (this.renderLock) return;
             this.renderLock = true;
             try {
                 this.#pruneExpiredPoints();
@@ -147,10 +151,8 @@ class MouseKeyboardPlayer {
                 this.#log("鼠标渲染循环异常", e.message);
             } finally {
                 this.renderLock = false;
-                requestAnimationFrame(render);
             }
-        }
-        requestAnimationFrame(render);
+        }, intervalMs);
     }
 
     play(evt) {
@@ -262,6 +264,8 @@ class MouseKeyboardPlayer {
         try {
             this.releaseAll();
             clearInterval(this.screenChangeTimer);
+            // 销毁鼠标渲染定时器，防止后台循环泄漏
+            if (this.renderTimer) clearInterval(this.renderTimer);
         } catch (e) {
             this.#log("销毁释放资源异常：", e.message);
         }
