@@ -6,7 +6,7 @@ let player
 
 class MouseKeyboardPlayer {
     constructor() {
-        // 本机屏幕物理尺寸 + DPI缩放兼容
+        // 本机屏幕物理尺寸，移除window DPR读取（主进程无window）
         this.#updateScreenInfo();
         // 缓存主控发送的屏幕信息（用于坐标换算，解决分辨率偏移）
         this.masterScreen = { w: 0, h: 0 };
@@ -49,12 +49,12 @@ class MouseKeyboardPlayer {
         this.screenChangeTimer = setInterval(() => this.#updateScreenInfo(), 1000);
     }
 
-    // 更新本机屏幕信息，兼容系统DPI缩放
+    // 更新本机屏幕信息，删除window相关代码，修复ReferenceError
     #updateScreenInfo() {
         const screen = robot.getScreenSize();
         this.screenW = screen.width;
         this.screenH = screen.height;
-        this.dpr = window?.devicePixelRatio || 1;
+        // 移除报错行：this.dpr = window?.devicePixelRatio || 1;
     }
 
     // 私有：转换键盘code适配robotjs
@@ -145,7 +145,7 @@ class MouseKeyboardPlayer {
                 // 鼠标移动：放入队列，防抖丢弃旧帧
                 case "move":
                     this.mouseQueue = { x: evt.x, y: evt.y };
-                    requestAnimationFrame(() => this.#flushMouseMove());
+                    setImmediate(() => this.#flushMouseMove());
                     break;
 
                 // 鼠标按下
