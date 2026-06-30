@@ -3,6 +3,7 @@ const path = require('node:path')
 const os = require('os')
 const http = require('./http')
 const ip = require('./ip.js')
+const robot = require('./robot.js')
 
 let win
 let db
@@ -234,10 +235,26 @@ ipcMain.on('maximize', () => {
 
 ipcMain.on('minimize', () => {
     win.minimize()
+    robot.start(win)
+    const trace = {
+        "time": new Date().toLocaleString('zh-CN'),
+        "target": '系统',
+        "msg": '开启键鼠控制',
+        "type": "log-succ"
+    }
+    win.webContents.send('trace-show', trace)
 })
 
 ipcMain.on('restore', () => {
     win.restore()
+    robot.destroy()
+    const trace = {
+        "time": new Date().toLocaleString('zh-CN'),
+        "target": '系统',
+        "msg": '关闭键鼠控制',
+        "type": "log-succ"
+    }
+    win.webContents.send('trace-show', trace)
 })
 
 ipcMain.on('unmaximize', () => {
@@ -249,6 +266,7 @@ ipcMain.on('unmaximize', () => {
 })
 
 ipcMain.on('monitorInput', (event, payload) => {
+    robot.play(JSON.parse(payload))
     console.log(payload)
 })
 

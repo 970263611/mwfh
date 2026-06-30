@@ -19,16 +19,17 @@
     "build:win": "npx electron-builder --win",
     "build:mac": "npx electron-builder --mac",
     "build:linux": "npx electron-builder --linux",
-    "build:uos": "npx electron-builder --linux deb"
+    "build:uos": "npx electron-builder --linux deb",
+    "rebuild": "npm rebuild --runtime=electron --target=42.5.0 --disturl=https://electronjs.org/headers --abi=2417"
   },
   "devDependencies": {
     "electron": "^42.5.0",
     "electron-builder": "^26.15.3"
   },
   "dependencies": {
-    "@roamhq/wrtc": "^0.10.0",
     "electron-squirrel-startup": "^1.0.1",
-    "lowdb": "^7.0.1"
+    "lowdb": "^7.0.1",
+    "robotjs": "^0.7.1"
   },
   "build": {
     "appId": "world.dahua.mwfh",

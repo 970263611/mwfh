@@ -204,7 +204,7 @@ function sendPutRtc(secret, url, type, payload = {}) {
         req.on('error', reject);
         req.setTimeout(10000, () => {
             req.destroy();
-            reject(new Error('RTC PUT请求超时'));
+            reject(new Error('RTC请求超时，请检查地址是否变化'));
         });
 
         req.write(sendBody);

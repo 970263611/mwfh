@@ -171,7 +171,7 @@ function parseAppArgs() {
 
 function getIcon(type) {
     if(type === 'small'){
-        return nativeImage.createFromPath(path.join(__dirname, 'logosmall.png'))
+        return nativeImage.createFromPath(path.join(__dirname, 'icon.png'))
     }
-    return nativeImage.createFromPath(path.join(__dirname, 'logo.png'))
+    return nativeImage.createFromPath(path.join(__dirname, 'icon.png'))
 }
