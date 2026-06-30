@@ -1125,18 +1125,20 @@
 
     // 断开观看（我看别人）
     function disconnectWatch() {
-        const mask = document.getElementById("watchScreenMask");
-        const video = document.getElementById("remoteWatchVideo");
-        // 停止视频流
-        if (video.srcObject) {
-            video.srcObject.getTracks().forEach(t => t.stop());
-            video.srcObject = null;
+        if (currentWatchTarget) {
+            const mask = document.getElementById("watchScreenMask");
+            const video = document.getElementById("remoteWatchVideo");
+            // 停止视频流
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(t => t.stop());
+                video.srcObject = null;
+            }
+            mask.classList.remove("show");
+            pushLog("系统", `已断开与节点【${currentWatchTarget?.name}】的观看连接`, "log-succ");
+            currentWatchTarget = null;
+            rtcPcClose()
+            monitorDestroy()
         }
-        mask.classList.remove("show");
-        pushLog("系统", `已断开与节点【${currentWatchTarget?.name}】的观看连接`, "log-succ");
-        currentWatchTarget = null;
-        rtcPcClose()
-        monitorDestroy()
     }
 
     // ========== 模式2：别人控制我（全屏提示） ==========
