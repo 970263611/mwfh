@@ -36,18 +36,19 @@ async function startRtc(node, videoDom) {
         // 对方断开、网络失败、连接关闭
         if (state === 'disconnected' || state === 'failed' || state === 'closed') {
             disconnectWatch(); // 执行断开逻辑：清视频、关闭遮罩、销毁peer
-        } else {
-            // 数据通道
-            // dc = pc.createDataChannel("mwfh");
-            // dc.onopen = () => {
-            //     pushLog('系统', '纯WebRTC数据通道建立成功', 'log-succ')
-            // }
-            // dc.onmessage = (ev) => console.log("收到DC消息:", ev.data)
-            // dc.onerror = (err) => {
-            //     pushLog('系统', 'RTC数据通道异常：' + err.message, 'log-err')
-            // }
         }
     };
+
+    dc = pc.createDataChannel("mwfh");
+    dc.onopen = () => {
+        pushLog('系统', 'RTC数据通道建立成功', 'log-succ')
+    }
+    dc.onmessage = (ev) => {
+        pushLog('系统', 'RTC数据通道接收消息：' + ev.data, 'log-succ')
+    }
+    dc.onerror = (err) => {
+        pushLog('系统', 'RTC数据通道异常：' + err.message, 'log-err')
+    }
 
     // ========== 核心修复：手动创建视频收发器，声明要接收视频 ==========
     pc.addTransceiver('video', {direction: 'recvonly'});
@@ -95,10 +96,12 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
         }
     };
 
-    // pc_.ondatachannel = (e) => {
-    //     dc_ = e.channel;
-    //     dc_.onmessage = (ev) => console.log("应答方DC收到消息：", ev.data);
-    // };
+    pc_.ondatachannel = (e) => {
+        dc_ = e.channel;
+        dc_.onmessage = (ev) => {
+            window.ea.monitorInput(ev.data)
+        }
+    };
 
     // 1. 载入对方Offer与ICE候选
     await pc_.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -190,15 +193,22 @@ async function peerClose(peer) {
 }
 
 // 对外发送dc消息
-function sendDCMessage(channel, data) {
+function rtcDcSendMessage(data) {
+    sendMessage(dc, data)
+}
+
+// 对外发送dc_消息
+function rtcDc_SendMessage(data) {
+    sendMessage(dc_, data)
+}
+
+function sendMessage(channel, data) {
     // 校验通道状态，必须open才能发
-    if (!channel || channel.readyState !== "open") {
-        pushLog("系统", "数据通道未打开，发送失败", "log-err");
-    } else {
+    if (channel && channel.readyState === "open") {
         try {
             // 对象转字符串发送，dc只支持字符串/二进制
             const msg = typeof data === "string" ? data : JSON.stringify(data);
-            channel.send(msg);
+            channel.send(msg)
         } catch (err) {
             pushLog("系统", "发送DC消息异常：" + err.message, "log-err");
         }

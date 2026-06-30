@@ -248,6 +248,10 @@ ipcMain.on('unmaximize', () => {
     }
 })
 
+ipcMain.on('monitorInput', (event, payload) => {
+    console.log(payload)
+})
+
 function getMac() {
     const interfaces = os.networkInterfaces();
     // 虚拟网卡关键词，用于排除

@@ -881,6 +881,7 @@
     </div>
 </div>
 <script src="./webrtc.js"></script>
+<script src="./monitor.js"></script>
 <script>
 
     window.ea.onTraceShow((trace) => {
@@ -1135,6 +1136,7 @@
         pushLog("系统", `已断开与节点【${currentWatchTarget?.name}】的观看连接`, "log-succ");
         currentWatchTarget = null;
         rtcPcClose()
+        monitorDestroy()
     }
 
     // ========== 模式2：别人控制我（全屏提示） ==========
@@ -1142,22 +1144,23 @@
     function enterControlledMode(remoteNodeName) {
         document.getElementById("controlledTipText").innerText = `${remoteNodeName} 正在控制你的设备`;
         document.getElementById("controlledScreenMask").classList.add("show");
-        pushLog("系统", `警告：节点【${remoteNodeName}】正在远程控制本机`, "log-succ");
+        pushLog("系统", `警告：节点【${remoteNodeName}】正在远程控制本机`, "log-warn");
     }
 
     // 断开被控连接，踢掉对方
     function disconnectControlled() {
         const mask = document.getElementById("controlledScreenMask");
         mask.classList.remove("show");
-        pushLog("系统", "已主动断开远程控制连接", "log-succ");
+        pushLog("系统", "已断开远程控制连接", "log-succ");
         // 通知主进程关闭所有peer连接
         rtcPc_Close();
     }
 
     // 控制节点（仅通道，不进全屏观看）
     function controlNode(nodeObj) {
+        viewOtherNode(nodeObj)
         pushLog("系统", `进入节点【${nodeObj.name}】控制通道`, "log-succ");
-        // 这里可自行扩展控制逻辑
+        monitorStart()
     }
 
     // 渲染节点列表
