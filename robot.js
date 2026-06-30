@@ -1,4 +1,5 @@
 const robot = require("robotjs");
+const os = require("os");
 
 let win
 let player
@@ -13,11 +14,28 @@ class MouseKeyboardPlayer {
         this.pressedKeys = new Set();
         // 缓存按下的鼠标按键
         this.pressedMouseBtn = new Set();
+        // 预定义修饰键映射，区分系统 Meta
+        this.metaKey = os.platform() === "darwin" ? "command" : "win";
+        this.modifierMap = {
+            MetaLeft: this.metaKey,
+            MetaRight: this.metaKey,
+            ControlLeft: "control",
+            ControlRight: "control",
+            ShiftLeft: "shift",
+            ShiftRight: "shift",
+            AltLeft: "alt",
+            AltRight: "alt"
+        };
     }
 
-    // 私有：转换键盘 code 适配 robotjs，兼容 Key / Digit
+    // 私有：转换键盘 code 适配 robotjs，兼容 Key / Digit / 左右修饰键
     #convertKeyCode(code) {
         if (!code || typeof code !== "string") return "";
+
+        // 匹配左右修饰键
+        if (this.modifierMap.hasOwnProperty(code)) {
+            return this.modifierMap[code];
+        }
         // 处理字母键 KeyW -> w
         if (code.startsWith("Key")) {
             return code.slice(3).toLowerCase();

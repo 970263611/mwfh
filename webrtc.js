@@ -99,7 +99,7 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     pc_.ondatachannel = (e) => {
         dc_ = e.channel;
         dc_.onmessage = (ev) => {
-            window.ea.monitorIn(ev.data)
+            window.ea.monitorInput(ev.data)
         }
     };
 
