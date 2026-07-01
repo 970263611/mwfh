@@ -16,6 +16,7 @@
   "main": "main.js",
   "scripts": {
     "dev": "electron .",
+    "dev-uos": "npx electron . --no-sandbox --disable-gpu --disable-gpu-sandbox --ozone-platform=x11",
     "build:win": "npx electron-builder --win",
     "build:mac": "npx electron-builder --mac",
     "build:linux": "npx electron-builder --linux",
@@ -39,14 +40,14 @@
         "nsis",
         "zip"
       ],
-      "icon": "./icon.png"
+      "icon": "./icons/icon-256.ico"
     },
     "mac": {
       "target": [
         "dmg",
         "zip"
       ],
-      "icon": "./icon.png"
+      "icon": "./icons/icon-512.png"
     },
     "linux": {
       "target": [
@@ -60,15 +61,15 @@
         "rpm",
         "zip"
       ],
-      "icon": "./icon.png"
+      "icon": "./icons/icon-512.png"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "installerIcon": "./icon.png",
-      "uninstallerIcon": "./icon.png",
+      "installerIcon": "./icons/icon-256.ico",
+      "uninstallerIcon": "./icons/icon-256.ico",
       "shortcutName": "mwfh"
     }
   }

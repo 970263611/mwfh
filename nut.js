@@ -1,18 +1,27 @@
-const nutjs = require("@nut-tree-fork/nut-js");
-const {screen} = require("electron");
-const os = require("os");
+const nutjs = require('@nut-tree-fork/nut-js');
+const {screen} = require('electron');
+const os = require('os');
 
+/**
+ * 键鼠事件播放器（被控端执行远程操作）
+ * 接收归一化坐标的键鼠事件，转换为本地屏幕坐标后执行
+ */
 class MouseKeyboardPlayer {
     constructor() {
+        // 获取主显示器信息
         this.display = screen.getPrimaryDisplay();
         this.screenW = this.display.size.width;
         this.screenH = this.display.size.height;
 
+        // 记录当前按下的键和鼠标按钮（用于释放）
         this.pressedKeys = new Set();
         this.pressedMouseBtn = new Set();
 
-        this.isMac = os.platform() === "darwin";
+        // 平台判断：Mac 上 Meta 键是 Command，其他系统是 Super/Win
+        this.isMac = os.platform() === 'darwin';
         this.metaKey = this.isMac ? nutjs.Key.Command : nutjs.Key.Super;
+
+        // 修饰键映射表（浏览器 e.code → nut.js Key）
         this.modifierMap = {
             MetaLeft: this.metaKey,
             MetaRight: this.metaKey,
@@ -24,6 +33,7 @@ class MouseKeyboardPlayer {
             AltRight: nutjs.Key.Alt
         };
 
+        // 鼠标按钮映射表（0=左键, 1=中键, 2=右键, 3/4=侧键）
         this.mouseBtnMap = {
             0: nutjs.Button.LEFT,
             1: nutjs.Button.MIDDLE,
@@ -32,52 +42,75 @@ class MouseKeyboardPlayer {
             4: nutjs.Button.X2
         };
 
-        this.latestMousePos = null;
-        this.mouseFrameInterval = null;
-        this.frameRate = 16;
-        this.smoothFactor = 0.85;
-        this.isFirstMove = true;
-        this.lastTargetPx = 0;
-        this.lastTargetPy = 0;
+        // 鼠标平滑移动相关
+        this.latestMousePos = null;       // 最新的目标位置（归一化坐标）
+        this.mouseFrameInterval = null;   // 鼠标渲染循环定时器
+        this.frameRate = 16;              // 渲染帧率（约 60fps）
+        this.smoothFactor = 0.85;         // 平滑系数，越大越跟手
+        this.isFirstMove = true;          // 是否第一次移动（不平滑）
+        this.lastTargetPx = 0;            // 上一次的目标像素 X
+        this.lastTargetPy = 0;            // 上一次的目标像素 Y
 
+        // 每秒刷新一次屏幕信息（应对分辨率变化）
         this.screenTimer = setInterval(() => this.#refreshScreen(), 1000);
+        // 启动鼠标渲染循环
         this.#startMouseRenderLoop();
     }
 
+    /** 刷新屏幕尺寸（每秒调用一次） */
     #refreshScreen() {
         this.display = screen.getPrimaryDisplay();
         this.screenW = this.display.size.width;
         this.screenH = this.display.size.height;
     }
 
+    /**
+     * 键盘码转换：浏览器 e.code → nut.js Key
+     * @param {string} code - 浏览器事件的 code 字段
+     * @returns {nutjs.Key|null}
+     */
     #convertKeyCode(code) {
-        if (!code || typeof code !== "string") return null;
+        if (!code || typeof code !== 'string') return null;
+        // 修饰键直接查表
         if (this.modifierMap[code]) return this.modifierMap[code];
-        if (code.startsWith("Key")) return nutjs.Key[code.slice(3).toUpperCase()];
-        if (code.startsWith("Digit")) return code.slice(5);
+        // 字母键：KeyA → A
+        if (code.startsWith('Key')) return nutjs.Key[code.slice(3).toUpperCase()];
+        // 数字键：Digit1 → 1
+        if (code.startsWith('Digit')) return code.slice(5);
+        // 其他键转小写返回
         return code.toLowerCase();
     }
 
+    /**
+     * 归一化坐标转像素坐标（带平滑插值）
+     * @param {number} normX - 归一化 X (0~1)
+     * @param {number} normY - 归一化 Y (0~1)
+     * @returns {{px: number, py: number}}
+     */
     #normToPixel(normX, normY) {
         let targetX = normX * this.screenW;
         let targetY = normY * this.screenH;
 
         if (this.isFirstMove) {
+            // 第一次移动直接定位，不平滑
             this.isFirstMove = false;
             this.lastTargetPx = targetX;
             this.lastTargetPy = targetY;
         } else {
+            // 平滑插值：向目标位置靠近 smoothFactor 的比例
             targetX = this.lastTargetPx + (targetX - this.lastTargetPx) * this.smoothFactor;
             targetY = this.lastTargetPy + (targetY - this.lastTargetPy) * this.smoothFactor;
             this.lastTargetPx = targetX;
             this.lastTargetPy = targetY;
         }
 
+        // 边界限制，确保不超出屏幕
         const px = Math.max(0, Math.min(this.screenW - 1, Math.round(targetX)));
         const py = Math.max(0, Math.min(this.screenH - 1, Math.round(targetY)));
         return {px, py};
     }
 
+    /** 启动鼠标渲染循环（独立线程处理移动，避免事件阻塞） */
     #startMouseRenderLoop() {
         if (this.mouseFrameInterval) return;
         this.mouseFrameInterval = setInterval(async () => {
@@ -88,49 +121,58 @@ class MouseKeyboardPlayer {
                 await nutjs.mouse.setPosition({x: px, y: py});
                 this.latestMousePos = null;
             } catch (e) {
-                console.log("[键鼠] 鼠标移动异常:", e.message);
+                // 静默失败
             }
         }, this.frameRate);
     }
 
+    /**
+     * 播放单个键鼠事件
+     * @param {object} evt - 事件对象 {t, x, y, b, c, dy, ...}
+     * @returns {boolean} 是否成功
+     */
     async play(evt) {
-        if (!evt?.t) {
-            console.log("[键鼠] 无效事件:", evt);
-            return false;
-        }
+        if (!evt?.t) return false;
         try {
             switch (evt.t) {
-                case "screen":
+                case 'screen':
+                    // 屏幕信息事件，忽略
                     return true;
-                case "move":
+                case 'move':
+                    // 鼠标移动：更新最新位置，由渲染循环处理
                     this.latestMousePos = {x: evt.x, y: evt.y};
                     break;
-                case "down": {
+                case 'down': {
+                    // 鼠标按下
                     const btn = this.mouseBtnMap[evt.b] ?? nutjs.Button.LEFT;
                     await nutjs.mouse.pressButton(btn);
                     this.pressedMouseBtn.add(btn);
                     break;
                 }
-                case "up": {
+                case 'up': {
+                    // 鼠标抬起
                     const btn = this.mouseBtnMap[evt.b] ?? nutjs.Button.LEFT;
                     await nutjs.mouse.releaseButton(btn);
                     this.pressedMouseBtn.delete(btn);
                     break;
                 }
-                case "wheel": {
+                case 'wheel': {
+                    // 鼠标滚轮：dy 为像素数，转换为 nut.js 的滚动步数
                     const step = Math.sign(evt.dy) * Math.min(Math.abs(evt.dy / 100), 3);
                     if (step > 0) await nutjs.mouse.scrollUp(Math.abs(step));
                     if (step < 0) await nutjs.mouse.scrollDown(Math.abs(step));
                     break;
                 }
-                case "kd": {
+                case 'kd': {
+                    // 键盘按下
                     const key = this.#convertKeyCode(evt.c);
                     if (!key) break;
                     await nutjs.keyboard.pressKey(key);
                     this.pressedKeys.add(key);
                     break;
                 }
-                case "ku": {
+                case 'ku': {
+                    // 键盘抬起
                     const key = this.#convertKeyCode(evt.c);
                     if (!key) break;
                     await nutjs.keyboard.releaseKey(key);
@@ -138,20 +180,23 @@ class MouseKeyboardPlayer {
                     break;
                 }
                 default:
-                    console.log("[键鼠] 未知事件类型:", evt.t);
+                    // 未知事件类型，忽略
+                    break;
             }
             return true;
         } catch (err) {
-            console.log("[键鼠] 执行异常:", err.message, evt);
             return false;
         }
     }
 
+    /**
+     * 批量播放事件（带间隔）
+     * @param {object[]} eventArr - 事件数组
+     * @param {number} delayMs - 每个事件间隔毫秒数
+     * @returns {boolean}
+     */
     async playBatch(eventArr, delayMs = 8) {
-        if (!Array.isArray(eventArr) || eventArr.length === 0) {
-            console.log("[键鼠] 回放数组为空");
-            return false;
-        }
+        if (!Array.isArray(eventArr) || eventArr.length === 0) return false;
         for (const item of eventArr) {
             await this.play(item);
             await new Promise(r => setTimeout(r, delayMs));
@@ -159,17 +204,25 @@ class MouseKeyboardPlayer {
         return true;
     }
 
+    /**
+     * 释放所有按下的键和鼠标按钮
+     * @param {string[]} rawKeyCodeList - 额外要释放的键码列表
+     */
     async releaseAll(rawKeyCodeList = []) {
+        // 释放所有记录的按键
         for (const k of this.pressedKeys) await nutjs.keyboard.releaseKey(k);
         this.pressedKeys.clear();
+        // 释放额外指定的键
         for (const code of rawKeyCodeList) {
             const k = this.#convertKeyCode(code);
             if (k) await nutjs.keyboard.releaseKey(k);
         }
+        // 释放所有鼠标按钮
         for (const btn of this.pressedMouseBtn) await nutjs.mouse.releaseButton(btn);
         this.pressedMouseBtn.clear();
     }
 
+    /** 销毁播放器，释放所有资源 */
     async destroy() {
         try {
             await this.releaseAll();
@@ -179,23 +232,27 @@ class MouseKeyboardPlayer {
                 this.mouseFrameInterval = null;
             }
         } catch (e) {
-            console.log("[键鼠] 销毁异常:", e.message);
+            // 静默失败
         }
         this.latestMousePos = null;
         this.isFirstMove = true;
     }
 }
 
+// 单例实例
 let player = null;
 
+/** 启动键鼠播放器（单例） */
 function start() {
     if (!player) player = new MouseKeyboardPlayer();
 }
 
+/** 播放单个输入事件 */
 async function playInput(evt) {
     if (player) await player.play(evt);
 }
 
+/** 销毁播放器 */
 async function destroy() {
     if (player) {
         await player.destroy();
@@ -203,8 +260,4 @@ async function destroy() {
     }
 }
 
-module.exports = {
-    start,
-    playInput,
-    destroy
-}
+module.exports = {start, playInput, destroy};

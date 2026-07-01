@@ -1,15 +1,73 @@
-const {contextBridge, ipcRenderer, webUtils} = require('electron/renderer')
+const { contextBridge, ipcRenderer, webUtils } = require('electron/renderer');
+
+/**
+ * IPC 回调缓存
+ * 使用对象存储回调函数，避免重复注册监听器导致内存泄漏和重复触发
+ * 所有监听器在 preload 加载时一次性注册，之后只替换回调函数
+ */
+const ipcHandlers = {
+    traceShow: null,     // 日志追踪显示回调
+    rtcRecv: null,       // RTC offer 接收回调
+    rtcCallback: null,   // RTC answer 接收回调
+    rtcExit: null        // RTC 退出回调
+};
+
+// ========== 全局 IPC 监听（一次性注册） ==========
+
+ipcRenderer.on('trace-show', (_, trace) => {
+    if (ipcHandlers.traceShow) ipcHandlers.traceShow(trace);
+});
+
+ipcRenderer.on('rtc-recv', (_, payload) => {
+    if (ipcHandlers.rtcRecv) ipcHandlers.rtcRecv(payload);
+});
+
+ipcRenderer.on('rtc-callback', (_, payload) => {
+    if (ipcHandlers.rtcCallback) ipcHandlers.rtcCallback(payload);
+});
+
+ipcRenderer.on('rtc-exit', () => {
+    if (ipcHandlers.rtcExit) ipcHandlers.rtcExit();
+});
+
+// ========== 暴露给渲染进程的 API ==========
 
 contextBridge.exposeInMainWorld('ea', {
+    // ----- 单向发送（fire-and-forget） -----
+
+    // 节点管理
     addNode: (node) => ipcRenderer.send('addNode', node),
     updateNode: (node) => ipcRenderer.send('updateNode', node),
     delNode: (node) => ipcRenderer.send('delNode', node),
+
+    // 消息发送
     sendT: (text) => ipcRenderer.send('sendT', text),
     sendF: (file) => ipcRenderer.send('sendF', file),
+
+    // 配置保存
     saveFolderPath: (path) => ipcRenderer.send('saveFolderPath', path),
     saveNodeName: (nodeName) => ipcRenderer.send('saveNodeName', nodeName),
     addTrace: (trace) => ipcRenderer.send('addTrace', trace),
     clearTrace: () => ipcRenderer.send('clearTrace'),
+    showItem: (fileName) => ipcRenderer.send('showItem', fileName),
+
+    // RTC 相关
+    viewOtherNode: (node, data) => ipcRenderer.send('viewOtherNode', node, data),
+    callbackViewNode: (node, data) => ipcRenderer.send('callbackViewNode', node, data),
+
+    // 窗口控制
+    maximize: () => ipcRenderer.send('maximize'),
+    minimize: () => ipcRenderer.send('minimize'),
+    unmaximize: () => ipcRenderer.send('unmaximize'),
+    restore: () => ipcRenderer.send('restore'),
+
+    // 键鼠控制
+    monitorInput: (payload) => ipcRenderer.send('monitorInput', payload),
+
+    // 密钥相关
+    saveMySecret: (secretKey) => ipcRenderer.send('saveMySecret', secretKey),
+
+    // ----- 异步请求（有返回值） -----
 
     getNodes: () => ipcRenderer.invoke('get-nodes'),
     getSaveFolderPath: () => ipcRenderer.invoke('get-save-folder-path'),
@@ -17,43 +75,47 @@ contextBridge.exposeInMainWorld('ea', {
     getTraces: () => ipcRenderer.invoke('get-traces'),
     selectFiles: () => ipcRenderer.invoke('select-files'),
     selectSaveFolder: () => ipcRenderer.invoke('select-save-folder'),
-
-    showItem: (fileName) => ipcRenderer.send('showItem', fileName),
-
-    onTraceShow: (callback) => ipcRenderer.on('trace-show', (event, trace) => callback(trace)),
-
-    rtcRecv: (callback) => ipcRenderer.on('rtc-recv', (event, payload) => callback(payload)),
-
-    rtcCallback: (callback) => ipcRenderer.on('rtc-callback', (event, payload) => callback(payload)),
-
     getMySecret: () => ipcRenderer.invoke('get-my-secret'),
-
-    saveMySecret: (secretKey) => ipcRenderer.send('saveMySecret', secretKey),
-
     getPublicIPv6: () => ipcRenderer.invoke('get-public-ipv6'),
 
-    viewOtherNode: (node, data) => ipcRenderer.send('viewOtherNode', node, data),
+    // ----- 主进程推送监听（替换回调方式） -----
 
-    callbackViewNode: (node, data) => ipcRenderer.send('callbackViewNode', node, data),
+    /** 设置日志追踪回调 */
+    onTraceShow: (callback) => {
+        ipcHandlers.traceShow = callback;
+    },
+    /** 设置 RTC offer 接收回调 */
+    rtcRecv: (callback) => {
+        ipcHandlers.rtcRecv = callback;
+    },
+    /** 设置 RTC answer 接收回调 */
+    rtcCallback: (callback) => {
+        ipcHandlers.rtcCallback = callback;
+    },
+    /** 设置 RTC 退出回调 */
+    rtcExit: (callback) => {
+        ipcHandlers.rtcExit = callback;
+    },
 
-    maximize: () => ipcRenderer.send('maximize'),
+    /** 清空所有回调（页面卸载时调用） */
+    clearAllIpcCallbacks: () => {
+        ipcHandlers.traceShow = null;
+        ipcHandlers.rtcRecv = null;
+        ipcHandlers.rtcCallback = null;
+        ipcHandlers.rtcExit = null;
+    },
 
-    minimize: () => ipcRenderer.send('minimize'),
+    // ----- 拖拽上传 -----
 
-    unmaximize: () => ipcRenderer.send('unmaximize'),
-
-    restore: () => ipcRenderer.send('restore'),
-
-    rtcExit: (callback) => ipcRenderer.on('rtc-exit', () => callback()),
-
-    monitorInput: (payload) => ipcRenderer.send('monitorInput', payload),
-
-    // 绑定拖拽区域，拖拽完成后返回绝对路径数组
+    /**
+     * 绑定文件拖拽上传区域
+     * @param {string} elementId - 拖拽区域 DOM 元素 ID
+     */
     bindDropArea: (elementId) => {
         const el = document.getElementById(elementId);
         if (!el) return;
 
-        // 拖拽经过：阻止默认行为 + 高亮样式
+        // 拖拽经过：高亮样式
         el.addEventListener('dragover', (e) => {
             e.preventDefault();
             el.style.borderColor = '#165DFF';
@@ -66,18 +128,15 @@ contextBridge.exposeInMainWorld('ea', {
             el.style.background = 'transparent';
         });
 
-        // 拖拽释放：提取路径 + 派发事件
+        // 拖拽放下：获取文件路径并触发自定义事件
         el.addEventListener('drop', (e) => {
             e.preventDefault();
             el.style.borderColor = 'var(--border)';
             el.style.background = 'transparent';
 
-            // 隔离上下文中可正常读取
             const files = Array.from(e.dataTransfer.files);
             const paths = files.map(file => webUtils.getPathForFile(file));
-
-            // 派发自定义事件，把路径传给页面
             el.dispatchEvent(new CustomEvent('file-drop', {detail: paths}));
         });
     }
-})
+});
