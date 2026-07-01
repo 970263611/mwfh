@@ -145,7 +145,11 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     let localStream;
     try {
         localStream = await navigator.mediaDevices.getDisplayMedia({
-            video: {frameRate: {ideal: 60, cursor: 'never'}}
+            video: {
+                cursor: "never",
+                frameRate: {ideal: 60}
+            },
+            audio: false
         });
         for (const track of localStream.getTracks()) {
             pc_.addTrack(track, localStream);
@@ -191,7 +195,10 @@ async function peerClose(peer) {
         // 关闭所有数据通道
         const dcList = peer.dataChannels ? [...peer.dataChannels] : [];
         for (const dc of dcList) {
-            try { if (dc.readyState !== 'closed') dc.close(); } catch (e) {}
+            try {
+                if (dc.readyState !== 'closed') dc.close();
+            } catch (e) {
+            }
         }
 
         // 停止发送轨道（屏幕共享等）
@@ -199,12 +206,16 @@ async function peerClose(peer) {
             try {
                 if (sender.track) sender.track.stop();
                 sender.replaceTrack(null);
-            } catch (e) {}
+            } catch (e) {
+            }
         });
 
         // 停止接收轨道
         peer.getReceivers().forEach(receiver => {
-            try { if (receiver.track) receiver.track.stop(); } catch (e) {}
+            try {
+                if (receiver.track) receiver.track.stop();
+            } catch (e) {
+            }
         });
 
         // 最后关闭连接
