@@ -17,6 +17,9 @@ class MouseKeyboardPlayer {
         this.pressedKeys = new Set();
         this.pressedMouseBtn = new Set();
 
+        nutjs.mouse.config.mouseSpeed = 0
+        nutjs.mouse.config.autoDelayMs = 0
+
         // 平台判断：Mac 上 Meta 键是 Command，其他系统是 Super/Win
         this.isMac = os.platform() === 'darwin';
         this.metaKey = this.isMac ? nutjs.Key.Command : nutjs.Key.Super;
