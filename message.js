@@ -1,9 +1,9 @@
-const {dialog, ipcMain, shell} = require('electron')
+const {dialog, ipcMain, shell, screen} = require('electron')
 const path = require('node:path')
 const os = require('os')
 const http = require('./http')
 const ip = require('./ip.js')
-const robot = require('./robot.js')
+const nut = require('./nut.js')
 
 let win
 let db
@@ -203,8 +203,14 @@ ipcMain.on('callbackViewNode', async (event, node, data) => {
     if (!addr.startsWith("http://")) {
         addr = "http://" + addr
     }
+    const primary = screen.getPrimaryDisplay()
     http.sendPutRtc(node.secret, addr, 'answer', {
         name: db.data.nodeName,
+        screen: {
+            width: primary.size.width,
+            height: primary.size.height,
+            scale: primary.scaleFactor
+        },
         data: data
     }).then(() => {
         const trace = {
@@ -235,7 +241,7 @@ ipcMain.on('maximize', () => {
 
 ipcMain.on('minimize', () => {
     win.minimize()
-    robot.start(win)
+    nut.start()
     const trace = {
         "time": new Date().toLocaleString('zh-CN'),
         "target": '系统',
@@ -245,9 +251,9 @@ ipcMain.on('minimize', () => {
     win.webContents.send('trace-show', trace)
 })
 
-ipcMain.on('restore', () => {
+ipcMain.on('restore', async () => {
     win.restore()
-    robot.destroy()
+    await nut.destroy()
     const trace = {
         "time": new Date().toLocaleString('zh-CN'),
         "target": '系统',
@@ -265,8 +271,8 @@ ipcMain.on('unmaximize', () => {
     }
 })
 
-ipcMain.on('monitorInput', (event, payload) => {
-    robot.play(JSON.parse(payload))
+ipcMain.on('monitorInput', async (event, payload) => {
+    await nut.playInput(JSON.parse(payload))
 })
 
 function getMac() {

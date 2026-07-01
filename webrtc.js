@@ -39,7 +39,10 @@ async function startRtc(node, videoDom) {
         }
     };
 
-    dc = pc.createDataChannel("mwfh");
+    dc = pc.createDataChannel("mwfh", {
+        maxRetransmits: 3,
+        ordered: false,
+    })
     dc.onopen = () => {
         pushLog('系统', 'RTC数据通道建立成功', 'log-succ')
     }
@@ -72,12 +75,13 @@ async function startRtc(node, videoDom) {
 }
 
 // 发起方接收远端Answer
-async function handleRemoteAnswer({sdp, candidates}) {
+async function handleRemoteAnswer(screen, {sdp, candidates}) {
     await pc.setRemoteDescription(new RTCSessionDescription(sdp));
     for (const cand of candidates) {
         await pc.addIceCandidate(new RTCIceCandidate(cand));
     }
     window.ea.maximize()
+    setRemoteScreen(screen)
 }
 
 // ========== 应答方（收到Offer，采集本机屏幕发给发起方） ==========

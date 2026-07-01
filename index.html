@@ -805,7 +805,7 @@
     <!-- ========== 全屏模式1：我观看别人（主控全屏视频） ========== -->
     <div class="watch-full-screen" id="watchScreenMask">
         <div class="watch-video-box">
-            <video id="remoteWatchVideo" autoplay muted playsinline></video>
+            <video id="remoteWatchVideo" tabindex="0" autoplay muted playsinline></video>
             <!-- 右下角常驻悬浮退出按钮，永久可见 -->
             <div class="watch-float-exit">
                 <button class="btn btn-sm btn-danger" onclick="disconnectWatch()">断开连接</button>
@@ -902,7 +902,7 @@
 
     window.ea.rtcCallback(async (payload) => {
         const rtc = JSON.parse(payload)
-        await handleRemoteAnswer(JSON.parse(rtc.data))
+        await handleRemoteAnswer(JSON.parse(rtc.screen), JSON.parse(rtc.data))
     })
 
     window.ea.rtcExit(async () => {
@@ -917,6 +917,11 @@
     let selectedFileList = null;
     let publicIpv6 = ""; // 公网IPv6全局变量
     let currentWatchTarget = null; // 当前正在观看的节点对象
+    let remoteScreen = null
+
+    function setRemoteScreen(screen) {
+        remoteScreen = screen
+    }
 
     // 密码显示隐藏切换函数
     function togglePwd(inputId) {
@@ -1168,7 +1173,7 @@
     function controlNode(nodeObj) {
         viewOtherNode(nodeObj)
         pushLog("系统", `进入节点【${nodeObj.name}】控制通道`, "log-succ");
-        monitorStart()
+        monitorStart(document.getElementById('remoteWatchVideo'), remoteScreen.width, remoteScreen.height)
     }
 
     // 渲染节点列表
