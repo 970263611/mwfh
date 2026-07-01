@@ -1198,6 +1198,7 @@
             mask.classList.remove('show');
             pushLog('系统', `已断开与节点【${currentWatchTarget?.name}】的观看连接`, 'log-succ');
             currentWatchTarget = null;
+            remoteScreen = null
             // 关闭 PeerConnection 和键鼠监听
             rtcPcClose();
             monitorDestroy();
