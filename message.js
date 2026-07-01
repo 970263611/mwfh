@@ -208,8 +208,7 @@ ipcMain.on('callbackViewNode', async (event, node, data) => {
         name: db.data.nodeName,
         screen: {
             width: primary.size.width,
-            height: primary.size.height,
-            scale: primary.scaleFactor
+            height: primary.size.height
         },
         data: data
     }).then(() => {
