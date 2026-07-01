@@ -28,21 +28,19 @@ class MouseKeyboardPlayer {
         this.modifierMap = {
             MetaLeft: this.metaKey,
             MetaRight: this.metaKey,
-            ControlLeft: nutjs.Key.Control,
-            ControlRight: nutjs.Key.Control,
-            ShiftLeft: nutjs.Key.Shift,
-            ShiftRight: nutjs.Key.Shift,
-            AltLeft: nutjs.Key.Alt,
-            AltRight: nutjs.Key.Alt
+            ControlLeft: nutjs.Key.LeftControl,
+            ControlRight: nutjs.Key.RightControl,
+            ShiftLeft: nutjs.Key.LeftShift,
+            ShiftRight: nutjs.Key.RightShift,
+            AltLeft: nutjs.Key.LeftAlt,
+            AltRight: nutjs.Key.RightAlt
         };
 
         // 鼠标按钮映射表（0=左键, 1=中键, 2=右键, 3/4=侧键）
         this.mouseBtnMap = {
             0: nutjs.Button.LEFT,
             1: nutjs.Button.MIDDLE,
-            2: nutjs.Button.RIGHT,
-            3: nutjs.Button.X1,
-            4: nutjs.Button.X2
+            2: nutjs.Button.RIGHT
         };
 
         // 鼠标平滑移动相关
@@ -201,7 +199,7 @@ class MouseKeyboardPlayer {
     async playBatch(eventArr, delayMs = 8) {
         if (!Array.isArray(eventArr) || eventArr.length === 0) return false;
         for (const item of eventArr) {
-            await this.play(item);
+            this.play(item);
             await new Promise(r => setTimeout(r, delayMs));
         }
         return true;
