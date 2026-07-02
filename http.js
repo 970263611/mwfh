@@ -1,11 +1,11 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const {URL} = require('url');
-const crypto = require('crypto');
+const http = require('http')
+const fs = require('fs')
+const path = require('path')
+const {URL} = require('url')
+const crypto = require('crypto')
 
 // 全局引用，由 start() 初始化
-let win, db, args;
+let win, db, args
 
 /**
  * HTTP 服务端
@@ -16,32 +16,32 @@ let win, db, args;
  */
 const server = http.createServer((req, res) => {
     // 从请求头取密钥
-    const secret = req.headers['mwfh-secret'];
+    const secret = req.headers['mwfh-secret']
 
     // 计算当前/前一分钟的合法密钥（允许 ±1 分钟时钟差）
-    const s1 = md5('Hua' + db.data.secret + getNowMin());
-    const s2 = md5('Hua' + db.data.secret + getPrevMin());
+    const s1 = md5('Hua' + db.data.secret + getNowMin())
+    const s2 = md5('Hua' + db.data.secret + getPrevMin())
 
     // 鉴权：本机密钥非空时校验
     if (secret !== s1 && secret !== s2 && db.data.secret !== '') {
-        res.writeHead(403);
-        res.end(JSON.stringify({code: 403}));
-        return;
+        res.writeHead(403)
+        res.end(JSON.stringify({code: 403}))
+        return
     }
 
-    res.setHeader('Content-Type', 'application/json;charset=utf-8');
-    const pathname = new URL(req.url, `http://${req.headers.host}`).pathname;
+    res.setHeader('Content-Type', 'application/jsoncharset=utf-8')
+    const pathname = new URL(req.url, `http://${req.headers.host}`).pathname
 
     // GET - 接收文字消息
     if (pathname === '/' && req.method === 'GET') {
-        const params = parseGetParams(req);
+        const params = parseGetParams(req)
         win.webContents.send('trace-show', {
             time: new Date().toLocaleString('zh-CN'),
             target: params.name,
             msg: '接收到新文字信息：' + params.data,
             type: 'log-succ'
-        });
-        res.end(JSON.stringify({code: 200}));
+        })
+        res.end(JSON.stringify({code: 200}))
     }
     // POST - 接收文件上传
     else if (pathname === '/' && req.method === 'POST') {
@@ -51,66 +51,66 @@ const server = http.createServer((req, res) => {
                 target: result.fields.name,
                 msg: '接收到新文件：' + result.fields.fileName,
                 type: 'log-succ'
-            });
-            res.end(JSON.stringify({code: 200}));
+            })
+            res.end(JSON.stringify({code: 200}))
         }).catch(err => {
-            res.writeHead(500);
-            res.end(JSON.stringify({code: 500, msg: err.message}));
-        });
+            res.writeHead(500)
+            res.end(JSON.stringify({code: 500, msg: err.message}))
+        })
     }
     // PUT - 接收 RTC 信令
     else if (pathname === '/' && req.method === 'PUT') {
-        const type = req.headers['mwfh-rtc-type'];
-        const remotePort = req.headers['mwfh-my-port'];
-        const remoteSecret = req.headers['mwfh-my-secret'];
+        const type = req.headers['mwfh-rtc-type']
+        const remotePort = req.headers['mwfh-my-port']
+        const remoteSecret = req.headers['mwfh-my-secret']
 
-        let bodyBuf = [];
-        req.on('data', chunk => bodyBuf.push(chunk));
+        let bodyBuf = []
+        req.on('data', chunk => bodyBuf.push(chunk))
         req.on('end', () => {
             try {
-                const payload = JSON.parse(Buffer.concat(bodyBuf).toString('utf8'));
+                const payload = JSON.parse(Buffer.concat(bodyBuf).toString('utf8'))
 
                 // 拼接对方完整地址（IPv6 加方括号）
-                let remoteAddr;
+                let remoteAddr
                 if (req.socket.remoteAddress) {
                     remoteAddr = req.socket.remoteAddress.includes(':')
                         ? '[' + req.socket.remoteAddress + ']:' + remotePort
-                        : req.socket.remoteAddress + ':' + remotePort;
+                        : req.socket.remoteAddress + ':' + remotePort
                 }
-                payload.addr = remoteAddr;
-                payload.secret = remoteSecret;
+                payload.addr = remoteAddr
+                payload.secret = remoteSecret
 
                 win.webContents.send('trace-show', {
                     time: new Date().toLocaleString('zh-CN'),
                     target: payload.name,
                     msg: `收到RTC[${type}]指令：${JSON.stringify(payload.data)}`,
                     type: 'log-succ'
-                });
+                })
 
                 // 分发给渲染进程对应事件
                 if (type === 'offer') {
-                    win.webContents.send('rtc-recv', JSON.stringify(payload));
+                    win.webContents.send('rtc-recv', JSON.stringify(payload))
                 } else if (type === 'answer') {
-                    win.webContents.send('rtc-callback', JSON.stringify(payload));
+                    win.webContents.send('rtc-callback', JSON.stringify(payload))
                 }
 
-                res.end(JSON.stringify({code: 200}));
+                res.end(JSON.stringify({code: 200}))
             } catch (e) {
-                res.writeHead(500);
-                res.end(JSON.stringify({code: 500, msg: e.message}));
+                res.writeHead(500)
+                res.end(JSON.stringify({code: 500, msg: e.message}))
             }
-        });
+        })
         req.on('error', err => {
-            res.writeHead(500);
-            res.end(JSON.stringify({code: 500, msg: err.message}));
-        });
+            res.writeHead(500)
+            res.end(JSON.stringify({code: 500, msg: err.message}))
+        })
     }
     // 其他路径返回 404
     else {
-        res.writeHead(404);
-        res.end(JSON.stringify({code: 404}));
+        res.writeHead(404)
+        res.end(JSON.stringify({code: 404}))
     }
-});
+})
 
 /**
  * 发送 GET 请求（文字消息）
@@ -121,11 +121,11 @@ const server = http.createServer((req, res) => {
  */
 function sendGet(secret, baseUrl, params = {}) {
     return new Promise((resolve, reject) => {
-        const urlObj = new URL(baseUrl);
-        Object.entries(params).forEach(([k, v]) => urlObj.searchParams.set(k, String(v)));
+        const urlObj = new URL(baseUrl)
+        Object.entries(params).forEach(([k, v]) => urlObj.searchParams.set(k, String(v)))
 
-        let host = urlObj.hostname;
-        if (host.startsWith('[') && host.endsWith(']')) host = host.slice(1, -1);
+        let host = urlObj.hostname
+        if (host.startsWith('[') && host.endsWith(']')) host = host.slice(1, -1)
 
         const req = http.get({
             hostname: host,
@@ -134,18 +134,25 @@ function sendGet(secret, baseUrl, params = {}) {
             method: 'GET',
             headers: {'Mwfh-Secret': md5('Hua' + secret + getNowMin())}
         }, res => {
-            let raw = '';
-            res.setEncoding('utf8');
-            res.on('data', c => raw += c);
+            let raw = ''
+            res.setEncoding('utf8')
+            res.on('data', c => raw += c)
             res.on('end', () => {
-                try { resolve(JSON.parse(raw)); } catch { resolve(raw); }
-            });
-            if (res.statusCode !== 200) reject(new Error('文字发送错误：' + res.statusCode));
-        });
+                try {
+                    resolve(JSON.parse(raw))
+                } catch {
+                    resolve(raw)
+                }
+            })
+            if (res.statusCode !== 200) reject(new Error('文字发送错误：' + res.statusCode))
+        })
 
-        req.on('error', reject);
-        req.setTimeout(10000, () => { req.destroy(); reject(new Error('文字发送超时')); });
-    });
+        req.on('error', reject)
+        req.setTimeout(10000, () => {
+            req.destroy()
+            reject(new Error('文字发送超时'))
+        })
+    })
 }
 
 /**
@@ -158,11 +165,11 @@ function sendGet(secret, baseUrl, params = {}) {
  */
 function sendPutRtc(secret, url, type, payload = {}) {
     return new Promise((resolve, reject) => {
-        const urlObj = new URL(url);
-        const body = JSON.stringify(payload);
+        const urlObj = new URL(url)
+        const body = JSON.stringify(payload)
 
-        let host = urlObj.hostname;
-        if (host.startsWith('[') && host.endsWith(']')) host = host.slice(1, -1);
+        let host = urlObj.hostname
+        if (host.startsWith('[') && host.endsWith(']')) host = host.slice(1, -1)
 
         const req = http.request({
             hostname: host,
@@ -170,7 +177,7 @@ function sendPutRtc(secret, url, type, payload = {}) {
             path: urlObj.pathname + urlObj.search,
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json;charset=utf-8',
+                'Content-Type': 'application/jsoncharset=utf-8',
                 'Content-Length': Buffer.byteLength(body),
                 'Mwfh-Secret': md5('Hua' + secret + getNowMin()),
                 'Mwfh-My-Secret': db.data.secret,
@@ -178,33 +185,33 @@ function sendPutRtc(secret, url, type, payload = {}) {
                 'Mwfh-My-Port': args.port
             }
         }, res => {
-            let raw = '';
-            res.setEncoding('utf8');
-            res.on('data', c => raw += c);
+            let raw = ''
+            res.setEncoding('utf8')
+            res.on('data', c => raw += c)
             res.on('end', () => {
                 try {
-                    const json = JSON.parse(raw);
+                    const json = JSON.parse(raw)
                     if (res.statusCode !== 200) {
-                        reject(new Error(`RTC传输错误：${res.statusCode} ${json.msg || ''}`));
-                        return;
+                        reject(new Error(`RTC传输错误：${res.statusCode} ${json.msg || ''}`))
+                        return
                     }
-                    resolve(json);
+                    resolve(json)
                 } catch {
-                    if (res.statusCode !== 200) reject(new Error(`RTC传输错误：${res.statusCode}`));
-                    else resolve(raw);
+                    if (res.statusCode !== 200) reject(new Error(`RTC传输错误：${res.statusCode}`))
+                    else resolve(raw)
                 }
-            });
-        });
+            })
+        })
 
-        req.on('error', reject);
+        req.on('error', reject)
         req.setTimeout(10000, () => {
-            req.destroy();
-            reject(new Error('RTC请求超时，请检查地址是否变化'));
-        });
+            req.destroy()
+            reject(new Error('RTC请求超时，请检查地址是否变化'))
+        })
 
-        req.write(body);
-        req.end();
-    });
+        req.write(body)
+        req.end()
+    })
 }
 
 /**
@@ -213,10 +220,10 @@ function sendPutRtc(secret, url, type, payload = {}) {
  * @returns {object}
  */
 function parseGetParams(req) {
-    const urlObj = new URL(req.url, `http://${req.headers.host}`);
-    const params = {};
-    urlObj.searchParams.forEach((v, k) => params[k] = v);
-    return params;
+    const urlObj = new URL(req.url, `http://${req.headers.host}`)
+    const params = {}
+    urlObj.searchParams.forEach((v, k) => params[k] = v)
+    return params
 }
 
 /**
@@ -230,12 +237,12 @@ function parseGetParams(req) {
  */
 function sendPostFile(secret, url, filePath, extraFields = {}, fieldName = 'file') {
     return new Promise((resolve, reject) => {
-        const urlObj = new URL(url);
-        const fileName = path.basename(filePath);
-        const boundary = `NodeFileBoundary_${Date.now()}`;
+        const urlObj = new URL(url)
+        const fileName = path.basename(filePath)
+        const boundary = `NodeFileBoundary_${Date.now()}`
 
-        let host = urlObj.hostname;
-        if (host.startsWith('[') && host.endsWith(']')) host = host.slice(1, -1);
+        let host = urlObj.hostname
+        if (host.startsWith('[') && host.endsWith(']')) host = host.slice(1, -1)
 
         const req = http.request({
             hostname: host,
@@ -243,43 +250,53 @@ function sendPostFile(secret, url, filePath, extraFields = {}, fieldName = 'file
             path: urlObj.pathname + urlObj.search,
             method: 'POST',
             headers: {
-                'Content-Type': `multipart/form-data; boundary=${boundary}`,
+                'Content-Type': `multipart/form-data boundary=${boundary}`,
                 'Mwfh-Secret': md5('Hua' + secret + getNowMin())
             }
         }, res => {
-            let raw = '';
-            res.setEncoding('utf8');
-            res.on('data', c => raw += c);
+            let raw = ''
+            res.setEncoding('utf8')
+            res.on('data', c => raw += c)
             res.on('end', () => {
-                try { resolve(JSON.parse(raw)); } catch { resolve(raw); }
-            });
-            if (res.statusCode !== 200) reject(new Error('文件传输错误：' + res.statusCode));
-        });
+                try {
+                    resolve(JSON.parse(raw))
+                } catch {
+                    resolve(raw)
+                }
+            })
+            if (res.statusCode !== 200) reject(new Error('文件传输错误：' + res.statusCode))
+        })
 
-        req.on('error', reject);
-        req.setTimeout(300000, () => { req.destroy(); reject(new Error('文件上传超时')); });
+        req.on('error', reject)
+        req.setTimeout(300000, () => {
+            req.destroy()
+            reject(new Error('文件上传超时'))
+        })
 
         // 写入普通表单字段
         Object.entries(extraFields).forEach(([k, v]) => {
-            req.write(`--${boundary}\r\n`);
-            req.write(`Content-Disposition: form-data; name="${k}"\r\n\r\n`);
-            req.write(`${String(v)}\r\n`);
-        });
+            req.write(`--${boundary}\r\n`)
+            req.write(`Content-Disposition: form-data name="${k}"\r\n\r\n`)
+            req.write(`${String(v)}\r\n`)
+        })
 
         // 写入文件字段头
-        req.write(`--${boundary}\r\n`);
-        req.write(`Content-Disposition: form-data; name="${fieldName}"; filename="${encodeURIComponent(fileName)}"\r\n`);
-        req.write('Content-Type: application/octet-stream\r\n\r\n');
+        req.write(`--${boundary}\r\n`)
+        req.write(`Content-Disposition: form-data name="${fieldName}" filename="${encodeURIComponent(fileName)}"\r\n`)
+        req.write('Content-Type: application/octet-stream\r\n\r\n')
 
         // 流式写入文件内容，避免大文件占内存
-        const stream = fs.createReadStream(filePath);
-        stream.pipe(req, {end: false});
+        const stream = fs.createReadStream(filePath)
+        stream.pipe(req, {end: false})
         stream.on('end', () => {
-            req.write(`\r\n--${boundary}--\r\n`);
-            req.end();
-        });
-        stream.on('error', err => { req.destroy(); reject(err); });
-    });
+            req.write(`\r\n--${boundary}--\r\n`)
+            req.end()
+        })
+        stream.on('error', err => {
+            req.destroy()
+            reject(err)
+        })
+    })
 }
 
 /**
@@ -291,60 +308,60 @@ function sendPostFile(secret, url, filePath, extraFields = {}, fieldName = 'file
 function savePostFile(req, saveDir) {
     return new Promise((resolve, reject) => {
         // 自动创建目录
-        if (!fs.existsSync(saveDir)) fs.mkdirSync(saveDir, {recursive: true});
+        if (!fs.existsSync(saveDir)) fs.mkdirSync(saveDir, {recursive: true})
 
         // 提取分隔符
-        const ct = req.headers['content-type'] || '';
-        const m = ct.match(/boundary=([^;]+)/);
-        if (!m) return reject(new Error('请求格式错误，非文件上传请求'));
-        const boundary = Buffer.from('--' + m[1].trim());
+        const ct = req.headers['content-type'] || ''
+        const m = ct.match(/boundary=([^]+)/)
+        if (!m) return reject(new Error('请求格式错误，非文件上传请求'))
+        const boundary = Buffer.from('--' + m[1].trim())
 
-        const chunks = [];
-        req.on('data', c => chunks.push(c));
+        const chunks = []
+        req.on('data', c => chunks.push(c))
         req.on('end', () => {
-            const buf = Buffer.concat(chunks);
-            const fields = {};
-            let fileResult = null;
+            const buf = Buffer.concat(chunks)
+            const fields = {}
+            let fileResult = null
 
             // 按分隔符切割
-            const parts = splitBuffer(buf, boundary);
+            const parts = splitBuffer(buf, boundary)
             parts.forEach(part => {
-                if (part.length === 0) return;
+                if (part.length === 0) return
                 // 结束标记以 -- 开头（直接检查字节，不转字符串，避免大文件性能问题）
-                if (part.length >= 2 && part[0] === 0x2d && part[1] === 0x2d) return;
+                if (part.length >= 2 && part[0] === 0x2d && part[1] === 0x2d) return
                 // 去掉开头的 \r\n
-                if (part[0] === 0x0d && part[1] === 0x0a) part = part.slice(2);
+                if (part[0] === 0x0d && part[1] === 0x0a) part = part.slice(2)
 
-                const headerEnd = part.indexOf('\r\n\r\n');
-                if (headerEnd === -1) return;
+                const headerEnd = part.indexOf('\r\n\r\n')
+                if (headerEnd === -1) return
 
-                const headerStr = part.slice(0, headerEnd).toString();
-                const body = part.slice(headerEnd + 4);
+                const headerStr = part.slice(0, headerEnd).toString()
+                const body = part.slice(headerEnd + 4)
 
-                const nameM = headerStr.match(/name="([^"]+)"/);
-                if (!nameM) return;
-                const fieldName = nameM[1];
+                const nameM = headerStr.match(/name="([^"]+)"/)
+                if (!nameM) return
+                const fieldName = nameM[1]
 
-                const fileM = headerStr.match(/filename="([^"]+)"/);
+                const fileM = headerStr.match(/filename="([^"]+)"/)
                 if (fileM) {
                     // 文件字段
-                    const fileName = decodeURIComponent(fileM[1]);
-                    const content = body.slice(0, body.length - 2); // 去掉末尾 \r\n
-                    const savePath = path.join(saveDir, fileName);
-                    fs.writeFileSync(savePath, content);
-                    fileResult = {fileName, filePath: savePath, size: content.length};
+                    const fileName = decodeURIComponent(fileM[1])
+                    const content = body.slice(0, body.length - 2) // 去掉末尾 \r\n
+                    const savePath = path.join(saveDir, fileName)
+                    fs.writeFileSync(savePath, content)
+                    fileResult = {fileName, filePath: savePath, size: content.length}
                 } else {
                     // 普通字段
-                    fields[fieldName] = body.toString('utf8').trim();
+                    fields[fieldName] = body.toString('utf8').trim()
                 }
-            });
+            })
 
-            if (!fileResult) return reject(new Error('未解析到上传文件'));
-            resolve({...fileResult, fields});
-        });
+            if (!fileResult) return reject(new Error('未解析到上传文件'))
+            resolve({...fileResult, fields})
+        })
 
-        req.on('error', reject);
-    });
+        req.on('error', reject)
+    })
 }
 
 /**
@@ -354,14 +371,14 @@ function savePostFile(req, saveDir) {
  * @returns {Buffer[]}
  */
 function splitBuffer(buffer, separator) {
-    const parts = [];
-    let offset = 0, idx;
+    const parts = []
+    let offset = 0, idx
     while ((idx = buffer.indexOf(separator, offset)) !== -1) {
-        parts.push(buffer.slice(offset, idx));
-        offset = idx + separator.length;
+        parts.push(buffer.slice(offset, idx))
+        offset = idx + separator.length
     }
-    parts.push(buffer.slice(offset));
-    return parts;
+    parts.push(buffer.slice(offset))
+    return parts
 }
 
 /**
@@ -371,13 +388,13 @@ function splitBuffer(buffer, separator) {
  * @param {object} mainArgs - 启动参数
  */
 function start(mainWin, mainDb, mainArgs) {
-    args = mainArgs;
-    win = mainWin;
-    db = mainDb;
+    args = mainArgs
+    win = mainWin
+    db = mainDb
 
     // 端口号，默认 5216
-    let port = mainArgs.port ? Number(mainArgs.port) : 5216;
-    if (!mainArgs.port) args.port = port;
+    let port = mainArgs.port ? Number(mainArgs.port) : 5216
+    if (!mainArgs.port) args.port = port
 
     // 重启服务
     if (server) {
@@ -387,8 +404,8 @@ function start(mainWin, mainDb, mainArgs) {
                 target: '系统',
                 msg: err ? '关闭失败：' + err.message : '传输服务已停止',
                 type: err ? 'log-succ' : 'log-err'
-            });
-        });
+            })
+        })
     }
 
     server.listen(port, () => {
@@ -399,9 +416,9 @@ function start(mainWin, mainDb, mainArgs) {
                 target: '系统',
                 msg: `服务启动成功：http://localhost:${port}`,
                 type: 'log-succ'
-            });
-        }, 3000);
-    });
+            })
+        }, 3000)
+    })
 }
 
 /**
@@ -410,19 +427,23 @@ function start(mainWin, mainDb, mainArgs) {
  * @returns {string}
  */
 function getTimeToMinNoSep(d) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const h = String(d.getHours()).padStart(2, '0');
-    const mi = String(d.getMinutes()).padStart(2, '0');
-    return `${y}${m}${day}${h}${mi}`;
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    const h = String(d.getHours()).padStart(2, '0')
+    const mi = String(d.getMinutes()).padStart(2, '0')
+    return `${y}${m}${day}${h}${mi}`
 }
 
 /** 当前分钟时间字符串 */
-function getNowMin() { return getTimeToMinNoSep(new Date()); }
+function getNowMin() {
+    return getTimeToMinNoSep(new Date())
+}
 
 /** 前一分钟时间字符串 */
-function getPrevMin() { return getTimeToMinNoSep(new Date(Date.now() - 60000)); }
+function getPrevMin() {
+    return getTimeToMinNoSep(new Date(Date.now() - 60000))
+}
 
 /**
  * MD5 加密
@@ -430,7 +451,7 @@ function getPrevMin() { return getTimeToMinNoSep(new Date(Date.now() - 60000)); 
  * @returns {string} 32位小写
  */
 function md5(str) {
-    return crypto.createHash('md5').update(str, 'utf8').digest('hex');
+    return crypto.createHash('md5').update(str, 'utf8').digest('hex')
 }
 
-module.exports = {start, sendGet, sendPostFile, sendPutRtc};
+module.exports = {start, sendGet, sendPostFile, sendPutRtc}

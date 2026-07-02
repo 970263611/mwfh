@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer, webUtils } = require('electron/renderer');
+const {contextBridge, ipcRenderer, webUtils} = require('electron/renderer')
 
 /**
  * IPC 回调缓存
@@ -11,29 +11,29 @@ const ipcHandlers = {
     rtcCallback: null,   // RTC answer 接收回调
     rtcExit: null,       // RTC 退出回调
     disconnectControlled: null  // 被控端主动断开回调
-};
+}
 
 // ========== 全局 IPC 监听（一次性注册） ==========
 
 ipcRenderer.on('trace-show', (_, trace) => {
-    if (ipcHandlers.traceShow) ipcHandlers.traceShow(trace);
-});
+    if (ipcHandlers.traceShow) ipcHandlers.traceShow(trace)
+})
 
 ipcRenderer.on('rtc-recv', (_, payload) => {
-    if (ipcHandlers.rtcRecv) ipcHandlers.rtcRecv(payload);
-});
+    if (ipcHandlers.rtcRecv) ipcHandlers.rtcRecv(payload)
+})
 
 ipcRenderer.on('rtc-callback', (_, payload) => {
-    if (ipcHandlers.rtcCallback) ipcHandlers.rtcCallback(payload);
-});
+    if (ipcHandlers.rtcCallback) ipcHandlers.rtcCallback(payload)
+})
 
 ipcRenderer.on('rtc-exit', () => {
-    if (ipcHandlers.rtcExit) ipcHandlers.rtcExit();
-});
+    if (ipcHandlers.rtcExit) ipcHandlers.rtcExit()
+})
 
 ipcRenderer.on('disconnect-controlled', () => {
-    if (ipcHandlers.disconnectControlled) ipcHandlers.disconnectControlled();
-});
+    if (ipcHandlers.disconnectControlled) ipcHandlers.disconnectControlled()
+})
 
 // ========== 暴露给渲染进程的 API ==========
 
@@ -87,33 +87,33 @@ contextBridge.exposeInMainWorld('ea', {
 
     /** 设置日志追踪回调 */
     onTraceShow: (callback) => {
-        ipcHandlers.traceShow = callback;
+        ipcHandlers.traceShow = callback
     },
     /** 设置 RTC offer 接收回调 */
     rtcRecv: (callback) => {
-        ipcHandlers.rtcRecv = callback;
+        ipcHandlers.rtcRecv = callback
     },
     /** 设置 RTC answer 接收回调 */
     rtcCallback: (callback) => {
-        ipcHandlers.rtcCallback = callback;
+        ipcHandlers.rtcCallback = callback
     },
     /** 设置 RTC 退出回调 */
     rtcExit: (callback) => {
-        ipcHandlers.rtcExit = callback;
+        ipcHandlers.rtcExit = callback
     },
 
     /** 设置被控端主动断开回调 */
     onDisconnectControlled: (callback) => {
-        ipcHandlers.disconnectControlled = callback;
+        ipcHandlers.disconnectControlled = callback
     },
 
     /** 清空所有回调（页面卸载时调用） */
     clearAllIpcCallbacks: () => {
-        ipcHandlers.traceShow = null;
-        ipcHandlers.rtcRecv = null;
-        ipcHandlers.rtcCallback = null;
-        ipcHandlers.rtcExit = null;
-        ipcHandlers.disconnectControlled = null;
+        ipcHandlers.traceShow = null
+        ipcHandlers.rtcRecv = null
+        ipcHandlers.rtcCallback = null
+        ipcHandlers.rtcExit = null
+        ipcHandlers.disconnectControlled = null
     },
 
     // ----- 拖拽上传 -----
@@ -123,31 +123,31 @@ contextBridge.exposeInMainWorld('ea', {
      * @param {string} elementId - 拖拽区域 DOM 元素 ID
      */
     bindDropArea: (elementId) => {
-        const el = document.getElementById(elementId);
-        if (!el) return;
+        const el = document.getElementById(elementId)
+        if (!el) return
 
         // 拖拽经过：高亮样式
         el.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            el.style.borderColor = '#165DFF';
-            el.style.background = 'rgba(22,93,255,0.02)';
-        });
+            e.preventDefault()
+            el.style.borderColor = '#165DFF'
+            el.style.background = 'rgba(22,93,255,0.02)'
+        })
 
         // 拖拽离开：恢复样式
         el.addEventListener('dragleave', () => {
-            el.style.borderColor = 'var(--border)';
-            el.style.background = 'transparent';
-        });
+            el.style.borderColor = 'var(--border)'
+            el.style.background = 'transparent'
+        })
 
         // 拖拽放下：获取文件路径并触发自定义事件
         el.addEventListener('drop', (e) => {
-            e.preventDefault();
-            el.style.borderColor = 'var(--border)';
-            el.style.background = 'transparent';
+            e.preventDefault()
+            el.style.borderColor = 'var(--border)'
+            el.style.background = 'transparent'
 
-            const files = Array.from(e.dataTransfer.files);
-            const paths = files.map(file => webUtils.getPathForFile(file));
-            el.dispatchEvent(new CustomEvent('file-drop', {detail: paths}));
-        });
+            const files = Array.from(e.dataTransfer.files)
+            const paths = files.map(file => webUtils.getPathForFile(file))
+            el.dispatchEvent(new CustomEvent('file-drop', {detail: paths}))
+        })
     }
-});
+})

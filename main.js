@@ -46,9 +46,9 @@ const createWindow = () => {
     win.webContents.once('did-finish-load', () => {
         // 开发环境下自动打开开发者工具（分离模式）
         if (!app.isPackaged) {
-            win.webContents.openDevTools({mode: 'detach'});
+            win.webContents.openDevTools({mode: 'detach'})
         }
-    });
+    })
     
     // ========== 关键：关闭窗口拦截 ==========
     // 点击关闭按钮时不退出程序，而是隐藏到托盘后台运行
@@ -121,8 +121,8 @@ app.on('before-quit', () => {
     isQuitting = true  // 标记为真正退出，让窗口关闭事件不拦截
     // 兜底：确保程序退出前恢复系统光标
     // try {
-    //     watchdog.stopWatchdog();
-    //     watchdog.showCursor();
+    //     watchdog.stopWatchdog()
+    //     watchdog.showCursor()
     // } catch (e) {
     //     // 忽略退出时的错误
     // }
@@ -191,36 +191,36 @@ function createTray() {
  * @returns {Record<string, string | boolean>} 参数对象
  */
 function parseAppArgs() {
-    const args = {};           // 存放解析结果
-    const argv = process.argv; // 命令行参数数组
+    const args = {}           // 存放解析结果
+    const argv = process.argv // 命令行参数数组
 
     // 遍历所有参数
     for (let i = 0; i < argv.length; i++) {
-        const item = argv[i];
+        const item = argv[i]
         // 不是以 -- 开头的跳过
-        if (!item.startsWith('--')) continue;
+        if (!item.startsWith('--')) continue
 
         // 处理 --key=value 等号格式
         if (item.includes('=')) {
-            const [key, value] = item.slice(2).split('=');  // 去掉 --，按 = 分割
-            args[key] = value;
-            continue;
+            const [key, value] = item.slice(2).split('=')  // 去掉 --，按 = 分割
+            args[key] = value
+            continue
         }
 
         // 处理 --key value 空格格式
-        const key = item.slice(2);           // 去掉 --，得到 key
-        const nextItem = argv[i + 1];        // 下一个参数
+        const key = item.slice(2)           // 去掉 --，得到 key
+        const nextItem = argv[i + 1]        // 下一个参数
         if (nextItem && !nextItem.startsWith('--')) {
             // 下一个参数不是新的选项，则作为值
-            args[key] = nextItem;
-            i++;  // 跳过下一个参数
+            args[key] = nextItem
+            i++  // 跳过下一个参数
         } else {
             // 没有值的开关参数，标记为 true
-            args[key] = true;
+            args[key] = true
         }
     }
 
-    return args;
+    return args
 }
 
 /**

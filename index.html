@@ -898,47 +898,47 @@
 
     /** 主进程推送追踪日志 */
     window.ea.onTraceShow((trace) => {
-        window.ea.addTrace(trace);
-        renderLog();
-    });
+        window.ea.addTrace(trace)
+        renderLog()
+    })
 
     /** 主进程推送 RTC offer（被控端收到对方请求） */
     window.ea.rtcRecv(async (payload) => {
-        const rtc = JSON.parse(payload);
-        await handleRemoteOffer(rtc.name, rtc.addr, rtc.secret, JSON.parse(rtc.data));
-    });
+        const rtc = JSON.parse(payload)
+        await handleRemoteOffer(rtc.name, rtc.addr, rtc.secret, JSON.parse(rtc.data))
+    })
 
     /** 主进程推送 RTC answer（发起方收到对方应答） */
     window.ea.rtcCallback(async (payload) => {
-        const rtc = JSON.parse(payload);
-        await handleRemoteAnswer(rtc.screen, JSON.parse(rtc.data));
-    });
+        const rtc = JSON.parse(payload)
+        await handleRemoteAnswer(rtc.screen, JSON.parse(rtc.data))
+    })
 
     /** 主进程通知 RTC 退出 */
     window.ea.rtcExit(async () => {
-        disconnectWatch();
-    });
+        disconnectWatch()
+    })
 
     /** 主进程通知被控端断开（托盘菜单等触发） */
     window.ea.onDisconnectControlled(() => {
-        disconnectControlled();
-    });
+        disconnectControlled()
+    })
 
     // ========== 全局状态 ==========
 
-    let nodeData;              // 节点列表
-    let saveFolderPath;        // 文件保存目录
-    let currentNodeName;       // 本机节点名称
-    let secretKey;             // 全局通讯密钥
-    let logData;               // 日志数据
-    let selectedFileList = null;  // 已选文件列表
-    let publicIpv6 = "";       // 公网 IPv6 地址
-    let currentWatchTarget = null;  // 当前正在观看的节点
-    let remoteScreen = null;   // 远端屏幕尺寸
+    let nodeData              // 节点列表
+    let saveFolderPath        // 文件保存目录
+    let currentNodeName       // 本机节点名称
+    let secretKey             // 全局通讯密钥
+    let logData               // 日志数据
+    let selectedFileList = null  // 已选文件列表
+    let publicIpv6 = ""       // 公网 IPv6 地址
+    let currentWatchTarget = null  // 当前正在观看的节点
+    let remoteScreen = null   // 远端屏幕尺寸
 
     /** 保存远端屏幕尺寸 */
     function setRemoteScreen(screen) {
-        remoteScreen = screen;
+        remoteScreen = screen
     }
 
     /**
@@ -946,14 +946,14 @@
      * @param {string} inputId - 输入框 ID
      */
     function togglePwd(inputId) {
-        const input = document.getElementById(inputId);
-        const btn = input.nextElementSibling;
+        const input = document.getElementById(inputId)
+        const btn = input.nextElementSibling
         if (input.type === 'password') {
-            input.type = 'text';
-            btn.textContent = '👁';
+            input.type = 'text'
+            btn.textContent = '👁'
         } else {
-            input.type = 'password';
-            btn.textContent = '👁︎';
+            input.type = 'password'
+            btn.textContent = '👁︎'
         }
     }
 
@@ -961,21 +961,21 @@
 
     /** 页面加载完成后初始化数据 */
     (async () => {
-        nodeData = await window.ea.getNodes();
-        saveFolderPath = await window.ea.getSaveFolderPath();
-        currentNodeName = await window.ea.getNodeName();
-        secretKey = await window.ea.getMySecret();
-        logData = await window.ea.getTraces();
+        nodeData = await window.ea.getNodes()
+        saveFolderPath = await window.ea.getSaveFolderPath()
+        currentNodeName = await window.ea.getNodeName()
+        secretKey = await window.ea.getMySecret()
+        logData = await window.ea.getTraces()
         // 公网 IPv6 展示
-        publicIpv6 = await window.ea.getPublicIPv6();
-        document.getElementById('publicIpv6Input').value = '[' + publicIpv6 + ']';
-        document.getElementById('savePathInput').value = saveFolderPath;
-        document.getElementById('currentNodeNameInput').value = currentNodeName;
-        document.getElementById('secretKeyInput').value = secretKey;
-        renderNode();
-        renderLog();
-        bindUpload();
-    })();
+        publicIpv6 = await window.ea.getPublicIPv6()
+        document.getElementById('publicIpv6Input').value = '[' + publicIpv6 + ']'
+        document.getElementById('savePathInput').value = saveFolderPath
+        document.getElementById('currentNodeNameInput').value = currentNodeName
+        document.getElementById('secretKeyInput').value = secretKey
+        renderNode()
+        renderLog()
+        bindUpload()
+    })()
 
     // ========== 地址校验工具 ==========
 
@@ -985,8 +985,8 @@
      * @returns {boolean}
      */
     function isValidPort(port) {
-        const p = parseInt(port, 10);
-        return !isNaN(p) && p >= 1 && p <= 65535;
+        const p = parseInt(port, 10)
+        return !isNaN(p) && p >= 1 && p <= 65535
     }
 
     /**
@@ -995,12 +995,12 @@
      * @returns {boolean}
      */
     function isValidIPv4(ip) {
-        const parts = ip.split('.');
-        if (parts.length !== 4) return false;
+        const parts = ip.split('.')
+        if (parts.length !== 4) return false
         return parts.every(part => {
-            const num = parseInt(part, 10);
-            return !isNaN(num) && num >= 0 && num <= 255 && part === num.toString();
-        });
+            const num = parseInt(part, 10)
+            return !isNaN(num) && num >= 0 && num <= 255 && part === num.toString()
+        })
     }
 
     /**
@@ -1009,15 +1009,15 @@
      * @returns {boolean}
      */
     function isValidIPv6(ip) {
-        if (!ip) return false;
-        if (ip.split('::').length > 2) return false;
+        if (!ip) return false
+        if (ip.split('::').length > 2) return false
         // 展开 :: 为完整 8 组
         const full = ip.includes('::')
             ? ip.replace('::', ':'.repeat(9 - ip.split(':').length))
-            : ip;
-        const groups = full.split(':').filter(g => g !== '');
-        if (groups.length < 1 || groups.length > 8) return false;
-        return groups.every(g => /^[0-9a-fA-F]{1,4}$/.test(g));
+            : ip
+        const groups = full.split(':').filter(g => g !== '')
+        if (groups.length < 1 || groups.length > 8) return false
+        return groups.every(g => /^[0-9a-fA-F]{1,4}$/.test(g))
     }
 
     /**
@@ -1026,59 +1026,59 @@
      * @returns {boolean}
      */
     function validateNodeAddress(addr) {
-        if (!addr || !addr.trim()) return false;
-        const address = addr.trim();
+        if (!addr || !addr.trim()) return false
+        const address = addr.trim()
 
         // IPv4 格式：ip:port
         if (!address.startsWith('[')) {
-            const lastColon = address.lastIndexOf(':');
-            if (lastColon === -1) return false;
-            const ip = address.substring(0, lastColon);
-            const port = address.substring(lastColon + 1);
-            return isValidIPv4(ip) && isValidPort(port);
+            const lastColon = address.lastIndexOf(':')
+            if (lastColon === -1) return false
+            const ip = address.substring(0, lastColon)
+            const port = address.substring(lastColon + 1)
+            return isValidIPv4(ip) && isValidPort(port)
         }
 
         // IPv6 格式：[ip]:port
         if (address.startsWith('[') && address.includes(']:')) {
-            const closeBracket = address.indexOf(']');
-            const ip = address.substring(1, closeBracket);
-            const port = address.substring(closeBracket + 2);
-            return isValidIPv6(ip) && isValidPort(port);
+            const closeBracket = address.indexOf(']')
+            const ip = address.substring(1, closeBracket)
+            const port = address.substring(closeBracket + 2)
+            return isValidIPv6(ip) && isValidPort(port)
         }
 
-        return false;
+        return false
     }
 
     // ========== 文件上传 ==========
 
     /** 绑定文件上传区域的点击和拖拽事件 */
     function bindUpload() {
-        const wrap = document.getElementById('uploadDom');
-        const tip = document.getElementById('fileTip');
+        const wrap = document.getElementById('uploadDom')
+        const tip = document.getElementById('fileTip')
 
         // 点击打开文件选择对话框
         wrap.onclick = async () => {
             window.ea.selectFiles()
                 .then(filePaths => {
                     if (filePaths && filePaths.length) {
-                        selectedFileList = filePaths;
-                        tip.textContent = `已选${filePaths.length}个文件`;
+                        selectedFileList = filePaths
+                        tip.textContent = `已选${filePaths.length}个文件`
                     }
                 })
                 .catch(err => {
-                    pushLog('系统', '打开文件选择框失败：' + err, 'log-err');
-                });
-        };
+                    pushLog('系统', '打开文件选择框失败：' + err, 'log-err')
+                })
+        }
 
         // 拖拽上传
-        window.ea.bindDropArea('uploadDom');
+        window.ea.bindDropArea('uploadDom')
         wrap.addEventListener('file-drop', (e) => {
-            const paths = e.detail;
+            const paths = e.detail
             if (paths.length) {
-                selectedFileList = paths;
-                tip.textContent = `已选${paths.length}个文件`;
+                selectedFileList = paths
+                tip.textContent = `已选${paths.length}个文件`
             }
-        });
+        })
     }
 
     // ========== 节点管理 ==========
@@ -1088,70 +1088,70 @@
      * @param {object} [node] - 编辑时传入节点对象，新增时不传
      */
     function openNodeModal(node) {
-        const errorEl = document.getElementById('addrError');
-        errorEl.style.display = 'none';
+        const errorEl = document.getElementById('addrError')
+        errorEl.style.display = 'none'
 
         if (node) {
             // 编辑模式：回填数据
-            document.getElementById('nodeName').value = node.name;
-            document.getElementById('nodeAddr').value = node.addr;
-            document.getElementById('nodeSecret').value = node.secret;
+            document.getElementById('nodeName').value = node.name
+            document.getElementById('nodeAddr').value = node.addr
+            document.getElementById('nodeSecret').value = node.secret
         } else {
             // 新增模式：清空表单
-            document.getElementById('nodeName').value = '';
-            document.getElementById('nodeAddr').value = '';
-            document.getElementById('nodeSecret').value = '';
+            document.getElementById('nodeName').value = ''
+            document.getElementById('nodeAddr').value = ''
+            document.getElementById('nodeSecret').value = ''
         }
         // 重置密码框为隐藏状态
-        const nodeSecretInput = document.getElementById('nodeSecret');
-        nodeSecretInput.type = 'password';
-        nodeSecretInput.nextElementSibling.textContent = '👁︎';
-        document.getElementById('nodeModal').classList.add('show');
+        const nodeSecretInput = document.getElementById('nodeSecret')
+        nodeSecretInput.type = 'password'
+        nodeSecretInput.nextElementSibling.textContent = '👁︎'
+        document.getElementById('nodeModal').classList.add('show')
     }
 
     /** 关闭节点弹窗 */
     function closeNodeModal() {
-        document.getElementById('nodeModal').classList.remove('show');
+        document.getElementById('nodeModal').classList.remove('show')
     }
 
     /** 保存节点（新增或更新） */
     async function saveNode() {
-        const nname = document.getElementById('nodeName').value.trim();
-        const naddr = document.getElementById('nodeAddr').value.trim();
-        const nsecret = document.getElementById('nodeSecret').value.trim();
-        const errorEl = document.getElementById('addrError');
+        const nname = document.getElementById('nodeName').value.trim()
+        const naddr = document.getElementById('nodeAddr').value.trim()
+        const nsecret = document.getElementById('nodeSecret').value.trim()
+        const errorEl = document.getElementById('addrError')
 
-        errorEl.style.display = 'none';
+        errorEl.style.display = 'none'
 
         // 校验
         if (!nname) {
-            pushLog('系统', '节点名称不能为空', 'log-err');
-            return;
+            pushLog('系统', '节点名称不能为空', 'log-err')
+            return
         }
         if (!naddr) {
-            errorEl.style.display = 'block';
-            pushLog('系统', '节点地址不能为空', 'log-err');
-            return;
+            errorEl.style.display = 'block'
+            pushLog('系统', '节点地址不能为空', 'log-err')
+            return
         }
         if (!validateNodeAddress(naddr)) {
-            errorEl.style.display = 'block';
-            pushLog('系统', '节点地址格式错误', 'log-err');
-            return;
+            errorEl.style.display = 'block'
+            pushLog('系统', '节点地址格式错误', 'log-err')
+            return
         }
 
         // 判断是新增还是更新
-        const idx = nodeData.findIndex(i => i.name === nname);
+        const idx = nodeData.findIndex(i => i.name === nname)
         if (idx != -1) {
-            window.ea.updateNode({name: nname, addr: naddr, secret: nsecret});
-            pushLog('系统', '更新节点：' + nname, 'log-info');
+            window.ea.updateNode({name: nname, addr: naddr, secret: nsecret})
+            pushLog('系统', '更新节点：' + nname, 'log-info')
         } else {
-            window.ea.addNode({name: nname, addr: naddr, secret: nsecret});
-            pushLog('系统', '新增节点：' + nname, 'log-succ');
+            window.ea.addNode({name: nname, addr: naddr, secret: nsecret})
+            pushLog('系统', '新增节点：' + nname, 'log-succ')
         }
         // 刷新列表
-        nodeData = await window.ea.getNodes();
-        renderNode();
-        closeNodeModal();
+        nodeData = await window.ea.getNodes()
+        renderNode()
+        closeNodeModal()
     }
 
     /**
@@ -1159,12 +1159,12 @@
      * @param {string} name - 节点名称
      */
     async function deleteNode(name) {
-        const item = nodeData.find(i => i.name === name);
-        if (!confirm('确认删除节点【' + item.name + '】？')) return;
-        window.ea.delNode({name: item.name});
-        nodeData = await window.ea.getNodes();
-        renderNode();
-        pushLog('系统', '已删除节点：' + item.name, 'log-warn');
+        const item = nodeData.find(i => i.name === name)
+        if (!confirm('确认删除节点【' + item.name + '】？')) return
+        window.ea.delNode({name: item.name})
+        nodeData = await window.ea.getNodes()
+        renderNode()
+        pushLog('系统', '已删除节点：' + item.name, 'log-warn')
     }
 
     // ========== 模式1：我观看别人（主控端） ==========
@@ -1174,40 +1174,40 @@
      * @param {object} nodeObj - 节点对象
      */
     function viewOtherNode(nodeObj) {
-        currentWatchTarget = nodeObj;
+        currentWatchTarget = nodeObj
         // 显示全屏观看遮罩
-        const mask = document.getElementById('watchScreenMask');
-        mask.classList.add('show');
-        pushLog('系统', `进入全屏观看节点【${nodeObj.name}】，地址：${nodeObj.addr}`, 'log-info');
+        const mask = document.getElementById('watchScreenMask')
+        mask.classList.add('show')
+        pushLog('系统', `进入全屏观看节点【${nodeObj.name}】，地址：${nodeObj.addr}`, 'log-info')
         // 延迟重绘，解决 Electron 最大化初次渲染拉伸问题
         setTimeout(() => {
-            const video = document.getElementById('remoteWatchVideo');
-            video.style.width = '99.99%';
+            const video = document.getElementById('remoteWatchVideo')
+            video.style.width = '99.99%'
             requestAnimationFrame(() => {
-                video.style.width = '100%';
-            });
-        }, 50);
+                video.style.width = '100%'
+            })
+        }, 50)
         // 建立 WebRTC 连接
-        startRtc(nodeObj, document.getElementById('remoteWatchVideo'));
+        startRtc(nodeObj, document.getElementById('remoteWatchVideo'))
     }
 
     /** 断开观看连接（我看别人） */
     function disconnectWatch() {
         if (currentWatchTarget) {
-            const mask = document.getElementById('watchScreenMask');
-            const video = document.getElementById('remoteWatchVideo');
+            const mask = document.getElementById('watchScreenMask')
+            const video = document.getElementById('remoteWatchVideo')
             // 停止视频流
             if (video.srcObject) {
-                video.srcObject.getTracks().forEach(t => t.stop());
-                video.srcObject = null;
+                video.srcObject.getTracks().forEach(t => t.stop())
+                video.srcObject = null
             }
-            mask.classList.remove('show');
-            pushLog('系统', `已断开与节点【${currentWatchTarget?.name}】的观看连接`, 'log-succ');
-            currentWatchTarget = null;
+            mask.classList.remove('show')
+            pushLog('系统', `已断开与节点【${currentWatchTarget?.name}】的观看连接`, 'log-succ')
+            currentWatchTarget = null
             remoteScreen = null
             // 关闭 PeerConnection 和键鼠监听
-            rtcPcClose();
-            monitorDestroy();
+            rtcPcClose()
+            monitorDestroy()
         }
     }
 
@@ -1218,18 +1218,18 @@
      * @param {string} remoteNodeName - 对方节点名称
      */
     function enterControlledMode(remoteNodeName) {
-        document.getElementById('controlledTipText').innerText = `${remoteNodeName} 正在控制你的设备`;
-        document.getElementById('controlledScreenMask').classList.add('show');
-        pushLog('系统', `警告：节点【${remoteNodeName}】正在远程控制本机`, 'log-warn');
+        document.getElementById('controlledTipText').innerText = `${remoteNodeName} 正在控制你的设备`
+        document.getElementById('controlledScreenMask').classList.add('show')
+        pushLog('系统', `警告：节点【${remoteNodeName}】正在远程控制本机`, 'log-warn')
     }
 
     /** 断开被控连接（主动踢掉对方） */
     function disconnectControlled() {
-        const mask = document.getElementById('controlledScreenMask');
-        mask.classList.remove('show');
-        pushLog('系统', '已断开远程控制连接', 'log-succ');
+        const mask = document.getElementById('controlledScreenMask')
+        mask.classList.remove('show')
+        pushLog('系统', '已断开远程控制连接', 'log-succ')
         // 关闭 PeerConnection
-        rtcPc_Close();
+        rtcPc_Close()
     }
 
     // ========== 控制模式 ==========
@@ -1239,22 +1239,22 @@
      * @param {object} nodeObj - 节点对象
      */
     function controlNode(nodeObj) {
-        viewOtherNode(nodeObj);
-        pushLog('系统', `进入节点【${nodeObj.name}】控制通道`, 'log-succ');
+        viewOtherNode(nodeObj)
+        pushLog('系统', `进入节点【${nodeObj.name}】控制通道`, 'log-succ')
         // 先用默认分辨率启动键鼠监听，等收到 answer 后再更新真实尺寸
-        monitorStart(document.getElementById('remoteWatchVideo'), 1920, 1080);
+        monitorStart(document.getElementById('remoteWatchVideo'), 1920, 1080)
     }
 
     // ========== 节点列表渲染 ==========
 
     /** 渲染节点列表 */
     function renderNode() {
-        const listDom = document.getElementById('nodeList');
+        const listDom = document.getElementById('nodeList')
         if (nodeData.length === 0) {
-            listDom.innerHTML = '<div class="empty-tip">暂无配置节点</div>';
-            return;
+            listDom.innerHTML = '<div class="empty-tip">暂无配置节点</div>'
+            return
         }
-        const itemStr = JSON.stringify;
+        const itemStr = JSON.stringify
         listDom.innerHTML = nodeData.map(item => `
           <div class="node-item">
             <div class="node-info">
@@ -1268,7 +1268,7 @@
               <button class="node-action-btn danger" title="删除" onclick="deleteNode('${item.name}')">删除</button>
             </div>
           </div>
-        `).join('');
+        `).join('')
     }
 
     // ========== 日志功能 ==========
@@ -1280,79 +1280,79 @@
      * @param {string} [type] - 日志类型：log-info / log-succ / log-err / log-warn
      */
     function pushLog(target, msg, type = 'log-info') {
-        const trace = {time: new Date().toLocaleString('zh-CN'), target, msg, type};
-        if (logData.length > 200) logData.length = 200;
-        window.ea.addTrace(trace);
-        renderLog();
+        const trace = {time: new Date().toLocaleString('zh-CN'), target, msg, type}
+        if (logData.length > 200) logData.length = 200
+        window.ea.addTrace(trace)
+        renderLog()
     }
 
     /** 渲染日志列表 */
     function renderLog() {
         window.ea.getTraces()
             .then(traces => {
-                logData = traces;
-                const box = document.getElementById('logBox');
+                logData = traces
+                const box = document.getElementById('logBox')
                 if (logData.length === 0) {
-                    box.innerHTML = '<div class="empty-tip">暂无交互记录</div>';
-                    return;
+                    box.innerHTML = '<div class="empty-tip">暂无交互记录</div>'
+                    return
                 }
                 box.innerHTML = logData.map((l, index) => {
-                    let btnHtml = '';
+                    let btnHtml = ''
                     // 收到文字消息：显示复制按钮
                     if (l.msg.startsWith('接收到新文字信息：')) {
-                        btnHtml = `<button class="log-btn" onclick="copyLogText(${index})">复制</button>`;
+                        btnHtml = `<button class="log-btn" onclick="copyLogText(${index})">复制</button>`
                     }
                     // 收到文件：显示打开位置按钮
                     else if (l.msg.startsWith('接收到新文件：')) {
-                        btnHtml = `<button class="log-btn" onclick="openFileInExplorer('${l.msg}')">打开位置</button>`;
+                        btnHtml = `<button class="log-btn" onclick="openFileInExplorer('${l.msg}')">打开位置</button>`
                     }
                     return `
                 <div class="log-line ${l.type}">
                   <span class="log-content">[${l.time}] [${l.target}] ${l.msg}</span>
                   ${btnHtml}
                 </div>
-              `;
-                }).join('');
+              `
+                }).join('')
                 // 滚动到顶部（最新的在最上面）
-                box.scrollTop = 0;
+                box.scrollTop = 0
             })
             .catch(err => {
-                console.log(err);
-            });
+                console.log(err)
+            })
     }
 
     /** 清空所有日志 */
     function clearLog() {
-        if (!confirm('清空全部日志？')) return;
-        window.ea.clearTrace();
-        renderLog();
-        pushLog('系统', '日志已全部清空', 'log-warn');
+        if (!confirm('清空全部日志？')) return
+        window.ea.clearTrace()
+        renderLog()
+        pushLog('系统', '日志已全部清空', 'log-warn')
     }
 
     // ========== 消息发送 ==========
 
     /** 发送文字消息 */
     function sendText() {
-        const text = document.getElementById('msgInput').value.trim();
-        if (!text) return pushLog('系统', '请输入文字内容', 'log-err');
-        window.ea.sendT(text);
-        pushLog('本地', '发送文本：' + text, 'log-succ');
-        document.getElementById('msgInput').value = '';
+        const text = document.getElementById('msgInput').value.trim()
+        if (!text) return pushLog('系统', '请输入文字内容', 'log-err')
+        window.ea.sendT(text)
+        pushLog('本地', '发送文本：' + text, 'log-succ')
+        document.getElementById('msgInput').value = ''
     }
 
     /** 发送文件 */
     function sendFile() {
         if (!selectedFileList || selectedFileList.length === 0) {
-            return pushLog('系统', '请选择上传文件', 'log-err');
+            return pushLog('系统', '请选择上传文件', 'log-err')
         }
         for (let f of selectedFileList) {
-            window.ea.sendF(f);
-            pushLog('本地', `正在发送文件：${f}`, 'log-info');
+            window.ea.sendF(f)
+            pushLog('本地', `正在发送文件：${f}`, 'log-info')
         }
         // 清空选择
-        document.getElementById('fileInput').value = '';
-        selectedFileList = null;
-        document.getElementById('fileTip').textContent = '未选择文件';
+        document.getElementById('fileInput').value = ''
+        selectedFileList = null
+        document.getElementById('fileTip').textContent = '未选择文件'
     }
 
     // ========== 设置弹窗 ==========
@@ -1360,15 +1360,15 @@
     /** 打开设置弹窗 */
     function openSettingModal() {
         // 重置密钥输入框为隐藏状态
-        const secretInput = document.getElementById('secretKeyInput');
-        secretInput.type = 'password';
-        secretInput.nextElementSibling.textContent = '👁︎';
-        document.getElementById('settingModal').classList.add('show');
+        const secretInput = document.getElementById('secretKeyInput')
+        secretInput.type = 'password'
+        secretInput.nextElementSibling.textContent = '👁︎'
+        document.getElementById('settingModal').classList.add('show')
     }
 
     /** 关闭设置弹窗 */
     function closeSettingModal() {
-        document.getElementById('settingModal').classList.remove('show');
+        document.getElementById('settingModal').classList.remove('show')
     }
 
     /** 选择文件保存目录 */
@@ -1376,42 +1376,42 @@
         window.ea.selectSaveFolder()
             .then(folderPath => {
                 if (folderPath && folderPath.length > 0) {
-                    document.getElementById('savePathInput').value = folderPath;
+                    document.getElementById('savePathInput').value = folderPath
                 }
             })
             .catch(err => {
-                pushLog('系统', '选择目录失败：' + err, 'log-err');
-            });
+                pushLog('系统', '选择目录失败：' + err, 'log-err')
+            })
     }
 
     /** 保存系统配置 */
     function saveSettingPath() {
-        const path = document.getElementById('savePathInput').value.trim();
-        const nodeName = document.getElementById('currentNodeNameInput').value.trim();
-        const key = document.getElementById('secretKeyInput').value.trim();
+        const path = document.getElementById('savePathInput').value.trim()
+        const nodeName = document.getElementById('currentNodeNameInput').value.trim()
+        const key = document.getElementById('secretKeyInput').value.trim()
 
         // 校验
         if (!path) {
-            pushLog('系统', '请先选择保存文件夹', 'log-warn');
-            return;
+            pushLog('系统', '请先选择保存文件夹', 'log-warn')
+            return
         }
         if (!nodeName) {
-            pushLog('系统', '请填写当前节点名称', 'log-warn');
-            return;
+            pushLog('系统', '请填写当前节点名称', 'log-warn')
+            return
         }
 
         // 更新全局变量
-        saveFolderPath = path;
-        currentNodeName = nodeName;
-        secretKey = key;
+        saveFolderPath = path
+        currentNodeName = nodeName
+        secretKey = key
 
         // 保存到主进程
-        window.ea.saveFolderPath(saveFolderPath);
-        window.ea.saveNodeName(currentNodeName);
-        window.ea.saveMySecret(secretKey);
+        window.ea.saveFolderPath(saveFolderPath)
+        window.ea.saveNodeName(currentNodeName)
+        window.ea.saveMySecret(secretKey)
 
-        pushLog('系统', '配置已保存：节点名称「' + currentNodeName + '」，保存路径「' + saveFolderPath + '」，全局密钥已更新', 'log-succ');
-        closeSettingModal();
+        pushLog('系统', '配置已保存：节点名称「' + currentNodeName + '」，保存路径「' + saveFolderPath + '」，全局密钥已更新', 'log-succ')
+        closeSettingModal()
     }
 
     // ========== 日志操作 ==========
@@ -1421,11 +1421,11 @@
      * @param {number} index - 日志索引
      */
     function copyLogText(index) {
-        const text = logData[index].msg.slice(9);  // 去掉前缀 "接收到新文字信息："
+        const text = logData[index].msg.slice(9)  // 去掉前缀 "接收到新文字信息："
         navigator.clipboard.writeText(text).then(() => {
         }).catch(err => {
-            pushLog('系统', '复制失败：' + err, 'log-err');
-        });
+            pushLog('系统', '复制失败：' + err, 'log-err')
+        })
     }
 
     /**
@@ -1434,9 +1434,9 @@
      */
     function openFileInExplorer(fileName) {
         if (window.ea) {
-            window.ea.showItem(fileName.slice(7));  // 去掉前缀 "接收到新文件："
+            window.ea.showItem(fileName.slice(7))  // 去掉前缀 "接收到新文件："
         } else {
-            pushLog('系统', '无法打开文件位置，请检查环境配置', 'log-err');
+            pushLog('系统', '无法打开文件位置，请检查环境配置', 'log-err')
         }
     }
 
@@ -1444,29 +1444,29 @@
 
     /** 监听窗口大小变化，修复全屏视频适配 */
     window.addEventListener('resize', () => {
-        const watchMask = document.getElementById('watchScreenMask');
-        const video = document.getElementById('remoteWatchVideo');
+        const watchMask = document.getElementById('watchScreenMask')
+        const video = document.getElementById('remoteWatchVideo')
         if (watchMask.classList.contains('show') && video) {
-            video.style.width = '99.99%';
+            video.style.width = '99.99%'
             setTimeout(() => {
-                video.style.width = '100%';
-            }, 20);
+                video.style.width = '100%'
+            }, 20)
         }
-    });
+    })
 
     /** ESC 快捷键退出全屏模式 */
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            const watchMask = document.getElementById('watchScreenMask');
-            const ctrlMask = document.getElementById('controlledScreenMask');
+            const watchMask = document.getElementById('watchScreenMask')
+            const ctrlMask = document.getElementById('controlledScreenMask')
             if (watchMask.classList.contains('show')) {
-                disconnectWatch();
+                disconnectWatch()
             }
             if (ctrlMask.classList.contains('show')) {
-                disconnectControlled();
+                disconnectControlled()
             }
         }
-    });
+    })
 </script>
 </body>
 </html>
