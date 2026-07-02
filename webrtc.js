@@ -54,10 +54,11 @@ async function startRtc(node, videoDom) {
     };
 
     // 创建数据通道：用于传输键鼠事件
-    // maxRetransmits=3 最多重传 3 次，ordered=false 不保证顺序（实时性优先）
+    // ordered=false
+    // maxRetransmits=3 最多重传 3 次，兼顾实时性和可靠性
     dc = pc.createDataChannel('mwfh', {
-        maxRetransmits: 3,
-        ordered: false
+        ordered: false,
+        maxRetransmits: 3
     });
     dc.onopen = () => pushLog('系统', 'RTC数据通道建立成功', 'log-succ');
     dc.onmessage = (ev) => pushLog('系统', 'RTC数据通道接收消息：' + ev.data, 'log-succ');
@@ -146,11 +147,7 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     try {
         localStream = await navigator.mediaDevices.getDisplayMedia({
             video: {
-                cursor: 'hidden',
-                frameRate: {ideal: 60},
-                mandatory: {
-                    cursor: 'hidden'
-                }
+                frameRate: {ideal: 60}
             },
             audio: false
         });

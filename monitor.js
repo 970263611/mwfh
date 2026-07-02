@@ -32,6 +32,14 @@ class RenderInputCapture {
         this.handleResize = () => this.updateViewport();
         window.addEventListener('resize', this.handleResize);
         this.#bindAllEvents();
+        // 自动聚焦 video 元素，确保键盘事件能触发
+        this.videoEl.focus();
+        // 监听窗口失焦，释放所有按键避免卡住
+        this.handleBlur = () => {
+            // 窗口失焦时，通知被控端释放所有按键
+            this.#sendImmediate({t: 'releaseAll'});
+        };
+        window.addEventListener('blur', this.handleBlur);
     }
 
     /**
@@ -120,6 +128,7 @@ class RenderInputCapture {
     #bindAllEvents() {
         // 鼠标移动（节流发送）
         const onMouseMove = (e) => {
+            e.preventDefault();
             const {x, y} = this.#getNormalizedPos(e);
             // 移动距离太小则忽略，减少无效数据
             if (Math.abs(x - this.cache.x) < this.minMoveDelta && Math.abs(y - this.cache.y) < this.minMoveDelta) return;
@@ -137,6 +146,7 @@ class RenderInputCapture {
 
         // 鼠标按下（立即发送）
         const onMouseDown = (e) => {
+            e.preventDefault();
             const {x, y} = this.#getNormalizedPos(e);
             // 点击时自动聚焦 video，确保键盘事件能触发
             this.videoEl.focus();
@@ -147,6 +157,7 @@ class RenderInputCapture {
 
         // 鼠标抬起（立即发送）
         const onMouseUp = (e) => {
+            e.preventDefault();
             const {x, y} = this.#getNormalizedPos(e);
             this.#sendImmediate({t: 'up', b: e.button, x, y});
         };
@@ -161,9 +172,21 @@ class RenderInputCapture {
         this.videoEl.addEventListener('wheel', onWheel, {passive: false});
         this.handlers.set('wheel', onWheel);
 
+        // 阻止右键菜单，避免控制端弹出浏览器右键菜单
+        const onContextMenu = (e) => {
+            e.preventDefault();
+        };
+        this.videoEl.addEventListener('contextmenu', onContextMenu);
+        this.handlers.set('contextmenu', onContextMenu);
+
         // 键盘按下（立即发送，忽略重复按键）
         const onKeyDown = (e) => {
             if (e.repeat) return;
+            // 阻止默认行为，避免控制端本地触发快捷键（如Win键、Alt+Tab、Ctrl+C等）
+            // 但保留 ESC 键，用于退出远程控制
+            if (e.code !== 'Escape') {
+                e.preventDefault();
+            }
             const mod = this.#getModMask(e);
             this.#sendImmediate({t: 'kd', c: e.code, mod});
         };
@@ -172,6 +195,10 @@ class RenderInputCapture {
 
         // 键盘抬起（立即发送）
         const onKeyUp = (e) => {
+            // 阻止默认行为
+            if (e.code !== 'Escape') {
+                e.preventDefault();
+            }
             const mod = this.#getModMask(e);
             this.#sendImmediate({t: 'ku', c: e.code, mod});
         };
@@ -186,6 +213,7 @@ class RenderInputCapture {
         }
         this.handlers.clear();
         window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener('blur', this.handleBlur);
     }
 }
 

@@ -36,6 +36,125 @@ class MouseKeyboardPlayer {
             AltRight: nutjs.Key.RightAlt
         };
 
+        // 完整键盘码映射表（浏览器 e.code → nut.js Key）
+        this.keyCodeMap = {
+            // 功能键
+            Escape: nutjs.Key.Escape,
+            F1: nutjs.Key.F1,
+            F2: nutjs.Key.F2,
+            F3: nutjs.Key.F3,
+            F4: nutjs.Key.F4,
+            F5: nutjs.Key.F5,
+            F6: nutjs.Key.F6,
+            F7: nutjs.Key.F7,
+            F8: nutjs.Key.F8,
+            F9: nutjs.Key.F9,
+            F10: nutjs.Key.F10,
+            F11: nutjs.Key.F11,
+            F12: nutjs.Key.F12,
+            PrintScreen: nutjs.Key.Print,
+            ScrollLock: nutjs.Key.ScrollLock,
+            Pause: nutjs.Key.Pause,
+
+            // 数字行
+            Backquote: nutjs.Key.Grave,
+            Digit1: nutjs.Key.Num1,
+            Digit2: nutjs.Key.Num2,
+            Digit3: nutjs.Key.Num3,
+            Digit4: nutjs.Key.Num4,
+            Digit5: nutjs.Key.Num5,
+            Digit6: nutjs.Key.Num6,
+            Digit7: nutjs.Key.Num7,
+            Digit8: nutjs.Key.Num8,
+            Digit9: nutjs.Key.Num9,
+            Digit0: nutjs.Key.Num0,
+            Minus: nutjs.Key.Minus,
+            Equal: nutjs.Key.Equal,
+            Backspace: nutjs.Key.Backspace,
+
+            // 编辑键区
+            Insert: nutjs.Key.Insert,
+            Home: nutjs.Key.Home,
+            PageUp: nutjs.Key.PageUp,
+            Delete: nutjs.Key.Delete,
+            End: nutjs.Key.End,
+            PageDown: nutjs.Key.PageDown,
+
+            // 导航键
+            Tab: nutjs.Key.Tab,
+            CapsLock: nutjs.Key.CapsLock,
+            Enter: nutjs.Key.Enter,
+            Space: nutjs.Key.Space,
+            ArrowUp: nutjs.Key.Up,
+            ArrowDown: nutjs.Key.Down,
+            ArrowLeft: nutjs.Key.Left,
+            ArrowRight: nutjs.Key.Right,
+
+            // 字母行（第一行）
+            KeyQ: nutjs.Key.Q,
+            KeyW: nutjs.Key.W,
+            KeyE: nutjs.Key.E,
+            KeyR: nutjs.Key.R,
+            KeyT: nutjs.Key.T,
+            KeyY: nutjs.Key.Y,
+            KeyU: nutjs.Key.U,
+            KeyI: nutjs.Key.I,
+            KeyO: nutjs.Key.O,
+            KeyP: nutjs.Key.P,
+            BracketLeft: nutjs.Key.LeftBracket,
+            BracketRight: nutjs.Key.RightBracket,
+            Backslash: nutjs.Key.Backslash,
+
+            // 字母行（第二行）
+            KeyA: nutjs.Key.A,
+            KeyS: nutjs.Key.S,
+            KeyD: nutjs.Key.D,
+            KeyF: nutjs.Key.F,
+            KeyG: nutjs.Key.G,
+            KeyH: nutjs.Key.H,
+            KeyJ: nutjs.Key.J,
+            KeyK: nutjs.Key.K,
+            KeyL: nutjs.Key.L,
+            Semicolon: nutjs.Key.Semicolon,
+            Quote: nutjs.Key.Quote,
+
+            // 字母行（第三行）
+            KeyZ: nutjs.Key.Z,
+            KeyX: nutjs.Key.X,
+            KeyC: nutjs.Key.C,
+            KeyV: nutjs.Key.V,
+            KeyB: nutjs.Key.B,
+            KeyN: nutjs.Key.N,
+            KeyM: nutjs.Key.M,
+            Comma: nutjs.Key.Comma,
+            Period: nutjs.Key.Period,
+            Slash: nutjs.Key.Slash,
+
+            // 数字小键盘
+            Numpad0: nutjs.Key.NumPad0,
+            Numpad1: nutjs.Key.NumPad1,
+            Numpad2: nutjs.Key.NumPad2,
+            Numpad3: nutjs.Key.NumPad3,
+            Numpad4: nutjs.Key.NumPad4,
+            Numpad5: nutjs.Key.NumPad5,
+            Numpad6: nutjs.Key.NumPad6,
+            Numpad7: nutjs.Key.NumPad7,
+            Numpad8: nutjs.Key.NumPad8,
+            Numpad9: nutjs.Key.NumPad9,
+            NumpadAdd: nutjs.Key.Add,
+            NumpadSubtract: nutjs.Key.Subtract,
+            NumpadMultiply: nutjs.Key.Multiply,
+            NumpadDivide: nutjs.Key.Divide,
+            NumpadDecimal: nutjs.Key.Decimal,
+            NumpadEnter: nutjs.Key.Enter,
+            NumLock: nutjs.Key.NumLock,
+
+            // 其他
+            ContextMenu: nutjs.Key.Menu,
+            OSLeft: this.metaKey,
+            OSRight: this.metaKey
+        };
+
         // 鼠标按钮映射表（0=左键, 1=中键, 2=右键, 3/4=侧键）
         this.mouseBtnMap = {
             0: nutjs.Button.LEFT,
@@ -72,14 +191,12 @@ class MouseKeyboardPlayer {
      */
     #convertKeyCode(code) {
         if (!code || typeof code !== 'string') return null;
-        // 修饰键直接查表
+        // 优先从完整映射表查找
+        if (this.keyCodeMap[code] !== undefined) return this.keyCodeMap[code];
+        // 修饰键兜底
         if (this.modifierMap[code]) return this.modifierMap[code];
-        // 字母键：KeyA → A
-        if (code.startsWith('Key')) return nutjs.Key[code.slice(3).toUpperCase()];
-        // 数字键：Digit1 → 1
-        if (code.startsWith('Digit')) return code.slice(5);
-        // 其他键转小写返回
-        return code.toLowerCase();
+        // 未找到的键返回 null，避免错误输入
+        return null;
     }
 
     /**
@@ -138,6 +255,10 @@ class MouseKeyboardPlayer {
             switch (evt.t) {
                 case 'screen':
                     // 屏幕信息事件，忽略
+                    return true;
+                case 'releaseAll':
+                    // 释放所有按键（窗口失焦时调用）
+                    await this.releaseAll();
                     return true;
                 case 'move':
                     // 鼠标移动：更新最新位置，由渲染循环处理

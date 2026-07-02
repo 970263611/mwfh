@@ -5,6 +5,7 @@ const fs = require('fs');
 const http = require('./http');
 const ip = require('./ip.js');
 const nut = require('./nut.js');
+const watchdog = require('./watchdog.js');
 
 // 全局引用，由 start() 初始化
 let win, db, appArgs, ipv6;
@@ -280,6 +281,9 @@ ipcMain.on('maximize', () => {
 ipcMain.on('minimize', () => {
     win.minimize();
     nut.start();
+    // 启动看门狗并隐藏光标，防止主进程异常退出时光标消失
+    watchdog.startWatchdog(win);
+    watchdog.hideCursor();
     win.webContents.send('trace-show', {
         time: new Date().toLocaleString('zh-CN'),
         target: '系统',
@@ -292,6 +296,9 @@ ipcMain.on('minimize', () => {
 ipcMain.on('restore', async () => {
     win.restore();
     await nut.destroy();
+    // 停止看门狗并恢复光标
+    watchdog.stopWatchdog();
+    watchdog.showCursor();
     win.webContents.send('trace-show', {
         time: new Date().toLocaleString('zh-CN'),
         target: '系统',

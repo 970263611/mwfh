@@ -21,7 +21,7 @@
     "build:mac": "npx electron-builder --mac",
     "build:linux": "npx electron-builder --linux",
     "build:uos": "npx electron-builder --linux deb",
-    "rebuild": "npm rebuild --runtime=electron --target=42.5.0 --disturl=https://electronjs.org/headers --abi=2417"
+    "rebuild": "npx electron-rebuild"
   },
   "devDependencies": {
     "electron": "^42.5.0",
@@ -30,11 +30,18 @@
   "dependencies": {
     "@nut-tree-fork/nut-js": "^4.2.6",
     "electron-squirrel-startup": "^1.0.1",
+    "koffi": "^3.1.0",
     "lowdb": "^7.0.1"
   },
   "build": {
     "appId": "world.dahua.mwfh",
     "productName": "mwfh",
+    "asar": true,
+    "asarUnpack": [
+      "**/watchdog.js",
+      "**/node_modules/koffi/**/*",
+      "**/node_modules/@nut-tree-fork/nut-js/**/*"
+    ],
     "win": {
       "target": [
         "nsis",
@@ -47,7 +54,8 @@
         "dmg",
         "zip"
       ],
-      "icon": "./icons/icon-512.png"
+      "icon": "./icons/icon-512.png",
+      "hardenedRuntime": false
     },
     "linux": {
       "target": [
