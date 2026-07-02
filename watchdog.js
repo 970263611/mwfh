@@ -123,13 +123,20 @@ function hideCursor() {
                 // 循环递减光标计数器
             }
         } else if (platform === 'darwin') {
+            // 使用 CGMainDisplayID 获取主显示器 ID，而不是硬编码 0
+            const CGMainDisplayID = cursorLib.func('CGMainDisplayID', 'uint32', []);
+            const mainDisplay = CGMainDisplayID();
             const CGDisplayHideCursor = cursorLib.func('CGDisplayHideCursor', 'int', ['uint32']);
-            CGDisplayHideCursor(0);
+            CGDisplayHideCursor(mainDisplay);
         } else if (platform === 'linux' && displayHandle && !koffi.isNull(displayHandle)) {
             const XFixesHideCursor = xfixesLib.func('XFixesHideCursor', 'void', ['pointer', 'uint64']);
             XFixesHideCursor(displayHandle, rootWindow);
+            // 刷新 X11 缓冲区，确保立即生效
+            const XFlush = cursorLib.func('XFlush', 'int', ['pointer']);
+            XFlush(displayHandle);
         }
         isCursorHidden = true;
+        sendLog('系统', '系统光标已隐藏', 'log-succ');
     } catch (err) {
         sendLog('系统', '隐藏光标失败：' + err.message, 'log-err');
     }
@@ -149,13 +156,20 @@ function showCursor() {
                 // 循环恢复光标计数器
             }
         } else if (platform === 'darwin') {
+            // 使用 CGMainDisplayID 获取主显示器 ID
+            const CGMainDisplayID = cursorLib.func('CGMainDisplayID', 'uint32', []);
+            const mainDisplay = CGMainDisplayID();
             const CGDisplayShowCursor = cursorLib.func('CGDisplayShowCursor', 'int', ['uint32']);
-            CGDisplayShowCursor(0);
+            CGDisplayShowCursor(mainDisplay);
         } else if (platform === 'linux' && displayHandle && !koffi.isNull(displayHandle)) {
             const XFixesShowCursor = xfixesLib.func('XFixesShowCursor', 'void', ['pointer', 'uint64']);
             XFixesShowCursor(displayHandle, rootWindow);
+            // 刷新 X11 缓冲区，确保立即生效
+            const XFlush = cursorLib.func('XFlush', 'int', ['pointer']);
+            XFlush(displayHandle);
         }
         isCursorHidden = false;
+        sendLog('系统', '系统光标已恢复', 'log-succ');
     } catch (err) {
         sendLog('系统', '恢复光标失败：' + err.message, 'log-err');
     }
@@ -331,8 +345,8 @@ if (isWatchdogChild()) {
 // ==================== 导出主进程 API ====================
 
 module.exports = {
-    startWatchdog,
-    stopWatchdog,
-    hideCursor,
-    showCursor
+    // startWatchdog,
+    // stopWatchdog,
+    // hideCursor,
+    // showCursor
 };

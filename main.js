@@ -6,7 +6,7 @@ const path = require('node:path')  // 路径处理
 const message = require('./message')    // 消息处理模块
 const http = require('./http.js')       // HTTP 服务模块
 const dbManager = require('./db.js')    // 数据库管理模块
-const watchdog = require('./watchdog.js')  // 看门狗与光标控制模块
+// const watchdog = require('./watchdog.js')  // 看门狗与光标控制模块
 
 // ========== 全局变量 ==========
 let win          // 主窗口对象
@@ -120,12 +120,12 @@ app.whenReady().then(async () => {
 app.on('before-quit', () => {
     isQuitting = true  // 标记为真正退出，让窗口关闭事件不拦截
     // 兜底：确保程序退出前恢复系统光标
-    try {
-        watchdog.stopWatchdog();
-        watchdog.showCursor();
-    } catch (e) {
-        // 忽略退出时的错误
-    }
+    // try {
+    //     watchdog.stopWatchdog();
+    //     watchdog.showCursor();
+    // } catch (e) {
+    //     // 忽略退出时的错误
+    // }
 })
 
 // 所有窗口都关闭时

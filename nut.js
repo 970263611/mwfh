@@ -20,14 +20,16 @@ class MouseKeyboardPlayer {
         nutjs.mouse.config.mouseSpeed = 0
         nutjs.mouse.config.autoDelayMs = 0
 
-        // 平台判断：Mac 上 Meta 键是 Command，其他系统是 Super/Win
+        // 平台判断：Mac 上 Meta 键是 Cmd，其他系统是 Win/Super
         this.isMac = os.platform() === 'darwin';
-        this.metaKey = this.isMac ? nutjs.Key.Command : nutjs.Key.Super;
 
         // 修饰键映射表（浏览器 e.code → nut.js Key）
+        // 注意：nut-js 的 Key 枚举中没有统一的 Command/Super，需要区分左右
         this.modifierMap = {
-            MetaLeft: this.metaKey,
-            MetaRight: this.metaKey,
+            MetaLeft: this.isMac ? nutjs.Key.LeftCmd : nutjs.Key.LeftWin,
+            MetaRight: this.isMac ? nutjs.Key.RightCmd : nutjs.Key.RightWin,
+            OSLeft: this.isMac ? nutjs.Key.LeftCmd : nutjs.Key.LeftWin,
+            OSRight: this.isMac ? nutjs.Key.RightCmd : nutjs.Key.RightWin,
             ControlLeft: nutjs.Key.LeftControl,
             ControlRight: nutjs.Key.RightControl,
             ShiftLeft: nutjs.Key.LeftShift,
@@ -151,8 +153,8 @@ class MouseKeyboardPlayer {
 
             // 其他
             ContextMenu: nutjs.Key.Menu,
-            OSLeft: this.metaKey,
-            OSRight: this.metaKey
+            OSLeft: this.isMac ? nutjs.Key.LeftCmd : nutjs.Key.LeftWin,
+            OSRight: this.isMac ? nutjs.Key.RightCmd : nutjs.Key.RightWin
         };
 
         // 鼠标按钮映射表（0=左键, 1=中键, 2=右键, 3/4=侧键）
@@ -265,14 +267,31 @@ class MouseKeyboardPlayer {
                     this.latestMousePos = {x: evt.x, y: evt.y};
                     break;
                 case 'down': {
-                    // 鼠标按下
+                    // 鼠标按下：先强制移动到目标位置，再点击
+                    if (evt.x !== undefined && evt.y !== undefined) {
+                        // 点击时使用精确位置，不做平滑插值
+                        const px = Math.max(0, Math.min(this.screenW - 1, Math.round(evt.x * this.screenW)));
+                        const py = Math.max(0, Math.min(this.screenH - 1, Math.round(evt.y * this.screenH)));
+                        await nutjs.mouse.setPosition({x: px, y: py});
+                        // 更新平滑移动的目标位置，避免后续移动跳变
+                        this.lastTargetPx = px;
+                        this.lastTargetPy = py;
+                    }
                     const btn = this.mouseBtnMap[evt.b] ?? nutjs.Button.LEFT;
                     await nutjs.mouse.pressButton(btn);
                     this.pressedMouseBtn.add(btn);
                     break;
                 }
                 case 'up': {
-                    // 鼠标抬起
+                    // 鼠标抬起：先强制移动到目标位置，再抬起
+                    if (evt.x !== undefined && evt.y !== undefined) {
+                        // 点击时使用精确位置，不做平滑插值
+                        const px = Math.max(0, Math.min(this.screenW - 1, Math.round(evt.x * this.screenW)));
+                        const py = Math.max(0, Math.min(this.screenH - 1, Math.round(evt.y * this.screenH)));
+                        await nutjs.mouse.setPosition({x: px, y: py});
+                        this.lastTargetPx = px;
+                        this.lastTargetPy = py;
+                    }
                     const btn = this.mouseBtnMap[evt.b] ?? nutjs.Button.LEFT;
                     await nutjs.mouse.releaseButton(btn);
                     this.pressedMouseBtn.delete(btn);

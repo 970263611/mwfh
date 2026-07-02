@@ -9,7 +9,8 @@ const ipcHandlers = {
     traceShow: null,     // 日志追踪显示回调
     rtcRecv: null,       // RTC offer 接收回调
     rtcCallback: null,   // RTC answer 接收回调
-    rtcExit: null        // RTC 退出回调
+    rtcExit: null,       // RTC 退出回调
+    disconnectControlled: null  // 被控端主动断开回调
 };
 
 // ========== 全局 IPC 监听（一次性注册） ==========
@@ -28,6 +29,10 @@ ipcRenderer.on('rtc-callback', (_, payload) => {
 
 ipcRenderer.on('rtc-exit', () => {
     if (ipcHandlers.rtcExit) ipcHandlers.rtcExit();
+});
+
+ipcRenderer.on('disconnect-controlled', () => {
+    if (ipcHandlers.disconnectControlled) ipcHandlers.disconnectControlled();
 });
 
 // ========== 暴露给渲染进程的 API ==========
@@ -97,12 +102,18 @@ contextBridge.exposeInMainWorld('ea', {
         ipcHandlers.rtcExit = callback;
     },
 
+    /** 设置被控端主动断开回调 */
+    onDisconnectControlled: (callback) => {
+        ipcHandlers.disconnectControlled = callback;
+    },
+
     /** 清空所有回调（页面卸载时调用） */
     clearAllIpcCallbacks: () => {
         ipcHandlers.traceShow = null;
         ipcHandlers.rtcRecv = null;
         ipcHandlers.rtcCallback = null;
         ipcHandlers.rtcExit = null;
+        ipcHandlers.disconnectControlled = null;
     },
 
     // ----- 拖拽上传 -----

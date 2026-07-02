@@ -820,6 +820,7 @@
 
     <!-- 全屏模式2：别人观看我（被控提示页） -->
     <div class="controlled-full-screen" id="controlledScreenMask">
+<!--        <div class="controlled-full-screen" id="controlledScreenMask" style="cursor:default !important;">-->
         <div class="controlled-tip-text" id="controlledTipText">XXX节点正在控制你的设备</div>
         <button class="btn btn-danger" onclick="disconnectControlled()">断开对方连接</button>
     </div>
@@ -916,6 +917,11 @@
     /** 主进程通知 RTC 退出 */
     window.ea.rtcExit(async () => {
         disconnectWatch();
+    });
+
+    /** 主进程通知被控端断开（托盘菜单等触发） */
+    window.ea.onDisconnectControlled(() => {
+        disconnectControlled();
     });
 
     // ========== 全局状态 ==========
