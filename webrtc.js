@@ -146,8 +146,11 @@ async function handleRemoteOffer(name, addr, secret, {sdp, candidates}) {
     try {
         localStream = await navigator.mediaDevices.getDisplayMedia({
             video: {
-                cursor: "never",
-                frameRate: {ideal: 60}
+                cursor: 'hidden',
+                frameRate: {ideal: 60},
+                mandatory: {
+                    cursor: 'hidden'
+                }
             },
             audio: false
         });
