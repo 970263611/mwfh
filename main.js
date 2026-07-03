@@ -119,13 +119,6 @@ app.whenReady().then(async () => {
 // 应用即将退出事件
 app.on('before-quit', () => {
     isQuitting = true  // 标记为真正退出，让窗口关闭事件不拦截
-    // 兜底：确保程序退出前恢复系统光标
-    // try {
-    //     watchdog.stopWatchdog()
-    //     watchdog.showCursor()
-    // } catch (e) {
-    //     // 忽略退出时的错误
-    // }
 })
 
 // 所有窗口都关闭时
