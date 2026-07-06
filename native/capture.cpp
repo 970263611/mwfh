@@ -23,9 +23,14 @@ std::string GetSimpleTime()
     std::time_t t = std::time(nullptr);
     std::tm tm{};
 #ifdef __APPLE__
+    // macOS / Apple
     localtime_r(&t, &tm);
-#else
+#elif defined(_WIN32)
+    // Windows
     localtime_s(&tm, &t);
+#elif defined(__linux__)
+    // Linux
+    localtime_r(&t, &tm);
 #endif
     std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
     return std::string(buf);
