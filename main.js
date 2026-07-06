@@ -6,7 +6,11 @@ const path = require('node:path')  // 路径处理
 const message = require('./message')    // 消息处理模块
 const http = require('./http.js')       // HTTP 服务模块
 const dbManager = require('./db.js')    // 数据库管理模块
-// const watchdog = require('./watchdog.js')  // 看门狗与光标控制模块
+const nt = require('./native.js')    // 原生录屏模块
+
+console.log(nt.start())
+console.log(nt.invoke())
+console.log(nt.destroy())
 
 // ========== 全局变量 ==========
 let win          // 主窗口对象

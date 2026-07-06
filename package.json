@@ -21,16 +21,21 @@
     "build:mac": "npx electron-builder --mac",
     "build:linux": "npx electron-builder --linux",
     "build:uos": "npx electron-builder --linux deb",
-    "rebuild": "npx electron-rebuild"
+    "rebuild:modules": "electron-rebuild -f",
+    "rebuild:native": "cd native && ../node_modules/.bin/node-gyp rebuild",
+    "rebuild": "npm run rebuild:modules && npm run rebuild:native"
   },
   "devDependencies": {
     "electron": "^42.5.0",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "electron-rebuild": "^3.2.9",
+    "node-gyp": "^13.0.1"
   },
   "dependencies": {
     "@nut-tree-fork/nut-js": "^4.2.6",
     "electron-squirrel-startup": "^1.0.1",
-    "lowdb": "^7.0.1"
+    "lowdb": "^7.0.1",
+    "node-addon-api": "^8.9.0"
   },
   "build": {
     "appId": "world.dahua.mwfh",
